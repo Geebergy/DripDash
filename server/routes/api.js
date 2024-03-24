@@ -85,7 +85,7 @@ router.post("/addUser", async (request, response) => {
 });
 // reset and set leadderboard
 // Schedule task to run at 00:00 on Monday (start of the week)
-cron.schedule('0 0 * * 1', async () => {
+cron.schedule('0 0 * * 0', async () => {
   try {
       // Reset weeklyEarnings and adsClicked for all users
       await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0 } });
