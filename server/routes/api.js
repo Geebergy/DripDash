@@ -303,9 +303,9 @@ router.post("/updateInfo", async (request, response) => {
       if(doesDataExist){
         await User.updateOne(
           { userId: userId },
-          { $inc: { referredUsers: 1 } },
-          { $inc: { weeklyReferrals: 1}}
-        );
+          { $inc: { referredUsers: 1, weeklyReferrals: 1 } }
+      );
+      
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
       }
