@@ -29,6 +29,7 @@ const schema = new mongoose.Schema({
     adsClicked: Number,
     weeklyEarnings: Number,
     isAnonymous: Boolean,
+    weeklyReferrals: Number,
   });
 
  
