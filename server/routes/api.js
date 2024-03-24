@@ -136,7 +136,7 @@ router.get('/top-earners', async (req, res) => {
               $gte: startOfWeek,
               $lte: endOfWeek
           }
-      }).sort({ weeklyEarnings: -1 }).limit(10);
+      }).sort({ weeklyReferrals: -1 }).limit(30);
 
       res.json(topEarners);
   } catch (err) {
@@ -161,7 +161,7 @@ router.get('/top-ad-clickers', async (req, res) => {
               $gte: startOfWeek,
               $lte: endOfWeek
           }
-      }).sort({ adsClicked: -1 }).limit(10);
+      }).sort({ adsClicked: -1 }).limit(30);
 
       res.json(topAdClickers);
   } catch (err) {
@@ -298,12 +298,12 @@ router.post("/updateInfo", async (request, response) => {
       //   { userId: userId },
       //   { $set: { balance: newBalance } }
       // );
-  
+      
       // Example 2: Incrementing referredUsers field
       if(doesDataExist){
         await User.updateOne(
           { userId: userId },
-          { $inc: { referredUsers: 1 } }
+          { $inc: { referredUsers: 1, weeklyReferrals: 1 } }
         );
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
