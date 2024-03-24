@@ -95,6 +95,31 @@ cron.schedule('0 0 * * 1', async () => {
   }
 });
 
+
+// update anonymity
+// Assuming you have a User model and express.Router() already set up
+
+// POST /api/update-anonymity
+router.post('/update-anonymity', async (req, res) => {
+  const anonymous  = req.body.anonymous;
+  const userID = req.body.userID;
+  try {
+      // Find the current user and update the isAnonymous field
+      const user = await User.findOne({userId: userID});
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+      await User.updateOne(
+        { userId: userID },
+        { $set: {isAnonymous: anonymous } }
+      );
+      res.status(200).json({ message: 'Anonymity preference updated successfully' });
+  } catch (error) {
+      console.error('Error updating anonymity preference:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Endpoint to get top earners for the current week
 router.get('/top-earners', async (req, res) => {
   try {
