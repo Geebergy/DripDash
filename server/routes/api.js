@@ -88,7 +88,7 @@ router.post("/addUser", async (request, response) => {
 cron.schedule('0 0 * * 0', async () => {
   try {
       // Reset weeklyEarnings and adsClicked for all users
-      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0 } });
+      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0 } });
       console.log('Weekly reset completed successfully.');
   } catch (err) {
       console.error('Error resetting weekly data:', err);
