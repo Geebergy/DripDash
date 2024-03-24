@@ -628,7 +628,29 @@ router.get('/getUserTransactions', async (request, response) => {
   }
 });
 
+// fetch prizes and winners
+const prizesAndWinnersSchema = new mongoose.Schema({
+  lastWinner: String,
+  lastPrize: Number,
+  currentPrize: Number,
+});
 
+// Create a model based on the schema
+const pandwInfo = mongoose.model('pandwInfo', prizesAndWinnersSchema, 'prizesandwinners');
+
+router.get('/getPrizesAndWinners', async (req, res) => {
+  try {
+    // Fetch prizes and winners data from the "prizesandwinners" collection
+    const prizesAndWinners = await pandwInfo.find({});
+
+    res.status(200).json(prizesAndWinners);
+  } catch (error) {
+    console.error('Error fetching prizes and winners: ', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// end of prizes and winners schema
 // fetching daily tasks
 // Define your MongoDB schema
 const dailyTaskSchema = new mongoose.Schema({
