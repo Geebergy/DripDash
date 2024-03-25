@@ -402,8 +402,9 @@ router.post("/updateBalance", async (request, response) => {
           dailyDropBalance,
           accountLimit,
           lastLogin,
-          firstLogin,
-          weeklyEarnings } }
+          firstLogin },
+          $inc: { weeklyEarnings: weeklyEarnings}  },
+           
         );
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
@@ -444,7 +445,8 @@ router.post("/updateInfoAfterPay", async (request, response) => {
               dailyDropBalance,
               referralRedeemed: true,
               referralsBalance,
-              hasPaid: true, } }
+              hasPaid: true },
+              $inc: { weeklyEarnings: referralsBalance } }
           );
           response.send({"status": "successful", "referrerData" : doesDataExist})
       }
@@ -491,7 +493,8 @@ router.post("/updateOnDebit", async (request, response) => {
             { $set: { adRevenue,
               referralsBalance,
               dailyDropBalance,
-              accountLimit} }
+              accountLimit},
+              $inc: { weeklyEarnings: referralsBalance } }
           );
         
     
@@ -520,14 +523,13 @@ router.post("/updateOnClick", async (request, response) => {
     const doesDataExist = await User.findOne({ userId: userId});
     try {
    
-  
       // Example 2: Incrementing referredUsers field
       if(doesDataExist){
           await User.updateOne(
             { userId: userId },
             { $set: { adRevenue,
               },
-              $inc: { adsClicked: 1 } }
+              $inc: { adsClicked: 1, weeklyEarnings: adRevenue } }
           );
         
     
@@ -569,7 +571,7 @@ router.post("/creditReferrer", async (request, response) => {
             totalReferrals,
             referralsBalance,
           },
-          $inc: { referredUsers: -1 }, // Decrement referredUsers by 1
+          $inc: { referredUsers: -1, weeklyEarnings: referralsBalance }, // Decrement referredUsers by 1
         }
       );
 
@@ -967,7 +969,8 @@ const updateBonus = async (userId, reward, taskID) => {
     await User.updateOne(
       { userId: userId },
       { $inc: {
-          referralsBalance: reward, // Increment by 1 or change as needed
+          referralsBalance: reward,
+          weeklyEarnings: reward // Increment by 1 or change as needed
         },
       }
     );
