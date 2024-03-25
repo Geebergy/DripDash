@@ -105,8 +105,8 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     const topAdClickerPrize = await Prize.findOne({ category: 'topAdClicker' });
 
     // Fetch the user documents for the top earners and ad clickers
-    const topEarnerUser = await User.findById(topEarnerPrize.userId);
-    const topAdClickerUser = await User.findById(topAdClickerPrize.userId);
+    const topEarnerUser = await User.findOne({userId: topEarnerPrize.userId});
+    const topAdClickerUser = await User.findOne({userId: topAdClickerPrize.userId});
 
     // Extract the usernames from the user documents
     const topEarnerUsername = topEarnerUser ? topEarnerUser.username : null;
