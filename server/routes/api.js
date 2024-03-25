@@ -93,6 +93,7 @@ const prizesAndWinnersSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  prize: Number,
 });
 
 // Create a model based on the schema
