@@ -115,7 +115,9 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     // Return the top earners and ad clickers with usernames
     res.json({ 
         topEarner: { userId: topEarnerPrize.userId, username: topEarnerUsername },
-        topAdClicker: { userId: topAdClickerPrize.userId, username: topAdClickerUsername }
+        topAdClicker: { userId: topAdClickerPrize.userId, username: topAdClickerUsername },
+        topEarnerUsername,
+        topAdClickerUsername
     });
   } catch (err) {
       console.error('Error fetching prizes and winners:', err);
