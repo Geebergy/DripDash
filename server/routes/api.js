@@ -83,17 +83,69 @@ router.post("/addUser", async (request, response) => {
     response.status(500).send(error);
   }
 });
+// fetch prizes and winners
+const prizesAndWinnersSchema = new mongoose.Schema({
+  lastWinner: String,
+  lastPrize: Number,
+  currentPrize: Number,
+  userId: String,
+  category: {
+    type: String,
+    required: true
+  },
+});
+
+// Create a model based on the schema
+const Prize = mongoose.model('Prize', prizesAndWinnersSchema, 'prizesandwinners');
+
+router.get('/getPrizesAndWinners', async (req, res) => {
+  try {
+    // Fetch the top earner and top ad clicker from the prizesandwinners collection
+    const topEarnerPrize = await Prize.findOne({ category: 'topEarner' });
+    const topAdClickerPrize = await Prize.findOne({ category: 'topAdClicker' });
+
+    // Fetch the user documents for the top earners and ad clickers
+    const topEarnerUser = await User.findById(topEarnerPrize.userId);
+    const topAdClickerUser = await User.findById(topAdClickerPrize.userId);
+
+    // Extract the usernames from the user documents
+    const topEarnerUsername = topEarnerUser ? topEarnerUser.username : null;
+    const topAdClickerUsername = topAdClickerUser ? topAdClickerUser.username : null;
+
+    // Return the top earners and ad clickers with usernames
+    res.json({ 
+        topEarner: { userId: topEarnerPrize.userId, username: topEarnerUsername },
+        topAdClicker: { userId: topAdClickerPrize.userId, username: topAdClickerUsername }
+    });
+  } catch (err) {
+      console.error('Error fetching prizes and winners:', err);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// end of prizesandwinners collection
 // reset and set leadderboard
 // Schedule task to run at 00:00 on Monday (start of the week)
 cron.schedule('0 0 * * 0', async () => {
   try {
       // Reset weeklyEarnings and adsClicked for all users
       await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0 } });
+
+
+      // Fetch top earners and ad clickers
+      const topEarners = await User.find().sort({ weeklyReferrals: -1 }).limit(1);
+      const topAdClickers = await User.find().sort({ adsClicked: -1 }).limit(1);
+
+    // Save the top earners and ad clickers to the prizesandwinners collection
+      await Prize.findOneAndUpdate({ category: 'topEarner' }, { $set: { userId: topEarners[0].userId } }, { upsert: true });
+      await Prize.findOneAndUpdate({ category: 'topAdClicker' }, { $set: { userId: topAdClickers[0].userId } }, { upsert: true });
+
+
       console.log('Weekly reset completed successfully.');
   } catch (err) {
       console.error('Error resetting weekly data:', err);
   }
 });
+
 
 
 // update anonymity
@@ -109,6 +161,7 @@ router.post('/update-anonymity', async (req, res) => {
       if (!user) {
           return res.status(404).json({ message: 'User not found' });
       }
+
       await User.updateOne(
         { userId: userID },
         { $set: {isAnonymous: anonymous } }
@@ -136,7 +189,7 @@ router.get('/top-earners', async (req, res) => {
               $gte: startOfWeek,
               $lte: endOfWeek
           }
-      }).sort({ weeklyReferrals: -1 }).limit(30);
+      }).sort({ weeklyReferrals: -1 }).limit(10);
 
       res.json(topEarners);
   } catch (err) {
@@ -161,7 +214,7 @@ router.get('/top-ad-clickers', async (req, res) => {
               $gte: startOfWeek,
               $lte: endOfWeek
           }
-      }).sort({ adsClicked: -1 }).limit(30);
+      }).sort({ adsClicked: -1 }).limit(10);
 
       res.json(topAdClickers);
   } catch (err) {
@@ -628,29 +681,8 @@ router.get('/getUserTransactions', async (request, response) => {
   }
 });
 
-// fetch prizes and winners
-const prizesAndWinnersSchema = new mongoose.Schema({
-  lastWinner: String,
-  lastPrize: Number,
-  currentPrize: Number,
-});
 
-// Create a model based on the schema
-const pandwInfo = mongoose.model('pandwInfo', prizesAndWinnersSchema, 'prizesandwinners');
 
-router.get('/getPrizesAndWinners', async (req, res) => {
-  try {
-    // Fetch prizes and winners data from the "prizesandwinners" collection
-    const prizesAndWinners = await pandwInfo.find({});
-
-    res.status(200).json(prizesAndWinners);
-  } catch (error) {
-    console.error('Error fetching prizes and winners: ', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// end of prizes and winners schema
 // fetching daily tasks
 // Define your MongoDB schema
 const dailyTaskSchema = new mongoose.Schema({
