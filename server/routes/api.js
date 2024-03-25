@@ -103,10 +103,15 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     // Fetch the top earner and top ad clicker from the prizesandwinners collection
     const topEarnerPrize = await Prize.findOne({ category: 'topEarner' });
     const topAdClickerPrize = await Prize.findOne({ category: 'topAdClicker' });
+    const currentPrizeDoc = await Prize.findOne({ category: 'Info' });
 
     // Fetch the user documents for the top earners and ad clickers
     const topEarnerUser = await User.findOne({userId: topEarnerPrize.userId});
     const topAdClickerUser = await User.findOne({userId: topAdClickerPrize.userId});
+    const topEarnerLastPrize = topEarnerPrize.prize;
+    const topAdClickerLastPrize = topAdClickerPrize.prize;
+    const currentPrize = currentPrizeDoc.prize;
+    
 
     // Extract the usernames from the user documents
     const topEarnerUsername = topEarnerUser ? topEarnerUser.name : null;
@@ -117,7 +122,10 @@ router.get('/getPrizesAndWinners', async (req, res) => {
         topEarner: { userId: topEarnerPrize.userId, username: topEarnerUsername },
         topAdClicker: { userId: topAdClickerPrize.userId, username: topAdClickerUsername },
         topEarnerUsername,
-        topAdClickerUsername
+        topAdClickerUsername,
+        topEarnerLastPrize,
+        topAdClickerLastPrize,
+        currentPrize
     });
   } catch (err) {
       console.error('Error fetching prizes and winners:', err);
