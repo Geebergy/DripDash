@@ -88,6 +88,7 @@ const prizesAndWinnersSchema = new mongoose.Schema({
   lastWinner: String,
   lastPrize: Number,
   currentPrize: Number,
+  adPrize: Number,
   userId: String,
   category: {
     type: String,
@@ -112,6 +113,7 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     const topEarnerLastPrize = topEarnerPrize.prize;
     const topAdClickerLastPrize = topAdClickerPrize.prize;
     const currentPrize = currentPrizeDoc.prize;
+    const currentAdPrize = currentPrizeDoc.adPrize;
     
 
     // Extract the usernames from the user documents
@@ -126,7 +128,8 @@ router.get('/getPrizesAndWinners', async (req, res) => {
         topAdClickerUsername,
         topEarnerLastPrize,
         topAdClickerLastPrize,
-        currentPrize
+        currentPrize,
+        currentAdPrize
     });
   } catch (err) {
       console.error('Error fetching prizes and winners:', err);
