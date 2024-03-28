@@ -255,7 +255,6 @@ router.post('/generate-deposit-address', async (req, res) => {
 
     res.json({ address: response.data.address });
   } catch (error) {
-    console.error('Error generating deposit address:', error.response.data);
     res.status(500).json({ error: 'Failed to generate deposit address' });
   }
 });
