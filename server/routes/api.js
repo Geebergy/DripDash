@@ -97,8 +97,18 @@ const prizesAndWinnersSchema = new mongoose.Schema({
   prize: Number,
 });
 
+const rafflesSchema = new mongoose.Schema({
+  userId: String,
+  category: {
+    type: String,
+    required: true
+  },
+  name: String,
+  fee: Number,
+});
 // Create a model based on the schema
 const Prize = mongoose.model('Prize', prizesAndWinnersSchema, 'prizesandwinners');
+const RaffleParticipant = mongoose.model('RaffleParticipant', rafflesSchema, 'raffles');
 
 router.get('/getPrizesAndWinners', async (req, res) => {
   try {
@@ -106,6 +116,7 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     const topEarnerPrize = await Prize.findOne({ category: 'topEarner' });
     const topAdClickerPrize = await Prize.findOne({ category: 'topAdClicker' });
     const currentPrizeDoc = await Prize.findOne({ category: 'Info' });
+    const raffleFeeDoc = await RaffleParticipant.findOne({ category: 'fee' });
 
     // Fetch the user documents for the top earners and ad clickers
     const topEarnerUser = await User.findOne({userId: topEarnerPrize.userId});
@@ -114,6 +125,7 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     const topAdClickerLastPrize = topAdClickerPrize.prize;
     const currentPrize = currentPrizeDoc.prize;
     const currentAdPrize = currentPrizeDoc.adPrize;
+    const currentRaffleFee = raffleFeeDoc.fee;
     
 
     // Extract the usernames from the user documents
@@ -129,7 +141,8 @@ router.get('/getPrizesAndWinners', async (req, res) => {
         topEarnerLastPrize,
         topAdClickerLastPrize,
         currentPrize,
-        currentAdPrize
+        currentAdPrize,
+        currentRaffleFee
     });
   } catch (err) {
       console.error('Error fetching prizes and winners:', err);
@@ -137,6 +150,20 @@ router.get('/getPrizesAndWinners', async (req, res) => {
   }
 });
 // end of prizesandwinners collection
+
+// Backend (Express) - Route to Add Participants
+router.post('/addParticipant', async (req, res) => {
+  try {
+      const { userId } = req.body;
+      // Save participant to the "raffleParticipants" collection in MongoDB
+      await RaffleParticipant.create({ userId, /* Other user information... */ });
+      res.sendStatus(200);
+  } catch (error) {
+      console.error('Error adding participant:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // reset and set leadderboard
 // Schedule task to run at 00:00 on Monday (start of the week)
 cron.schedule('0 0 * * 0', async () => {
