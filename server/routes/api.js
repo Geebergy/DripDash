@@ -99,10 +99,7 @@ const prizesAndWinnersSchema = new mongoose.Schema({
 
 const rafflesSchema = new mongoose.Schema({
   userId: String,
-  category: {
-    type: String,
-    required: true
-  },
+  category: String,
   name: String,
   fee: Number,
 });
@@ -156,20 +153,17 @@ router.post('/addParticipant', async (req, res) => {
   try {
       const { userId, fee } = req.body;
       // update user balance before adding them
-      const updatedUser = await User.findOneAndUpdate(
+      await User.findOneAndUpdate(
         { userId: userId },
         { $inc: { referralsBalance: -fee } }, // Deduct the fee from the balance
         { new: true } // To return the updated user document
       );
   
       // Check if the user exists and the balance was updated
-      if (updatedUser) {
-        // Save participant to the "raffleParticipants" collection in MongoDB
-        await RaffleParticipant.create({ userId, /* Other user information... */ });
-        res.status(200).json({ message: 'Fee deducted successfully', user: updatedUser });
-      } else {
-        res.status(404).json({ message: 'User not found' });
-      }
+      
+       // Save participant to the "raffleParticipants" collection in MongoDB
+       await RaffleParticipant.create({ userId, /* Other user information... */ });
+       res.status(200).json({ message: 'Fee deducted successfully'});
       
   } catch (error) {
       console.error('Error adding participant:', error);
