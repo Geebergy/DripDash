@@ -233,33 +233,32 @@ cron.schedule('0 0 * * 0', async () => {
   }
 });
 
+// Binance API key (replace with your own)
+const API_KEY = 'rAyFSi0or8CbXlWm2yAX5If1BqFmS8baQDnaPvCDRc4tHnH96DEmkq79qQMqXptb';
 
-router.post('/bitcoin-address', async (req, res) => {
+// Generate deposit address endpoint
+router.post('/generate-deposit-address', async (req, res) => {
   try {
-    const response = await axios.post('https://www.blockonomics.co/api/new_address', {
-      headers: { Authorization: `Bearer ${process.env.BLOCKONOMICS_API_KEY}` }
-    });
+    const response = await axios.post(
+      'https://api.binance.com/sapi/v1/capital/deposit/address',
+      {
+        coin: 'BTC',
+        network: 'BTC',
+        recvWindow: 60000,
+      },
+      {
+        headers: {
+          'X-MBX-APIKEY': API_KEY,
+        },
+      }
+    );
+
     res.json({ address: response.data.address });
   } catch (error) {
-    console.error('Error generating Bitcoin address:', error);
-    res.status(500).json({ error: 'Error generating Bitcoin address' });
+    console.error('Error generating deposit address:', error.response.data);
+    res.status(500).json({ error: 'Failed to generate deposit address' });
   }
 });
-
-router.get('/payment-status', async (req, res) => {
-  const { address } = req.query;
-  try {
-    const response = await axios.get(`https://www.blockonomics.co/api/searchhistory?addr=${address}`, {
-      headers: { Authorization: `Bearer ${process.env.BLOCKONOMICS_API_KEY}` }
-    });
-    const status = response.data.length > 0 ? 'Payment Received' : 'Payment Not Received';
-    res.json({ status });
-  } catch (error) {
-    console.error('Error checking payment status:', error);
-    res.status(500).json({ error: 'Error checking payment status' });
-  }
-});
-
 // update anonymity
 // Assuming you have a User model and express.Router() already set up
 
