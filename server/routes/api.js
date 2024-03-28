@@ -155,14 +155,14 @@ router.post('/addParticipant', async (req, res) => {
       // update user balance before adding them
       await User.findOneAndUpdate(
         { userId: userId },
-        { $inc: { referralsBalance: -fee } }, // Deduct the fee from the balance
+        { $inc: { referralsBalance: -fee, slots: 1 } }, // Deduct the fee from the balance
         { new: true } // To return the updated user document
       );
   
       // Check if the user exists and the balance was updated
       
        // Save participant to the "raffleParticipants" collection in MongoDB
-       await RaffleParticipant.create({ userId, /* Other user information... */ });
+       await RaffleParticipant.create({ userId, category: 'participant' });
        res.status(200).json({ message: 'Fee deducted successfully'});
       
   } catch (error) {
@@ -171,12 +171,37 @@ router.post('/addParticipant', async (req, res) => {
   }
 });
 
+// select raffle winner
+const selectRaffleWinner = async () => {
+  try {
+      // Fetch all participants from the raffleParticipants collection
+      const participants = await RaffleParticipant.find({ category: 'participant' });
+
+      // Select a random participant as the winner
+      const winner = participants[Math.floor(Math.random() * participants.length)];
+
+      // Save the winner to the raffleWinners collection or document
+      await RaffleParticipant.create({ userId: winner.userId, category: 'winner' });
+
+      console.log('Raffle winner selected:', winner);
+
+      // Delete all participants from the raffleParticipants collection
+      await RaffleParticipant.deleteMany({ category: 'participant' });
+
+      console.log('All participants deleted from the raffleParticipants collection.');
+  } catch (error) {
+      console.error('Error selecting raffle winner:', error);
+  }
+};
+
+
+
 // reset and set leadderboard
 // Schedule task to run at 00:00 on Monday (start of the week)
 cron.schedule('0 0 * * 0', async () => {
   try {
       // Reset weeklyEarnings and adsClicked for all users
-      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0 } });
+      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0, slots: 0 } });
 
 
       // Fetch top earners and ad clickers
