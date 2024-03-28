@@ -239,7 +239,7 @@ const API_KEY = 'rAyFSi0or8CbXlWm2yAX5If1BqFmS8baQDnaPvCDRc4tHnH96DEmkq79qQMqXpt
 // Generate deposit address endpoint
 router.post('/generate-deposit-address', async (req, res) => {
   try {
-    const response = await axios.post(
+    const response = await fetch(
       'https://api.binance.com/sapi/v1/capital/deposit/address',
       {
         coin: 'BTC',
