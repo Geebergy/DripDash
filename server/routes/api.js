@@ -113,13 +113,16 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     const topEarnerPrize = await Prize.findOne({ category: 'topEarner' });
     const topAdClickerPrize = await Prize.findOne({ category: 'topAdClicker' });
     const currentPrizeDoc = await Prize.findOne({ category: 'Info' });
+    const raffleWinner = await Prize.findOne({ category: 'raffleWinner' });
     const raffleFeeDoc = await RaffleParticipant.findOne({ category: 'fee' });
 
     // Fetch the user documents for the top earners and ad clickers
     const topEarnerUser = await User.findOne({userId: topEarnerPrize.userId});
     const topAdClickerUser = await User.findOne({userId: topAdClickerPrize.userId});
+    const raffleWinnerUser = await User.findOne({userId: raffleWinner.userId});
     const topEarnerLastPrize = topEarnerPrize.prize;
     const topAdClickerLastPrize = topAdClickerPrize.prize;
+    const raffleWinnerLastPrize = raffleWinner.prize;
     const currentPrize = currentPrizeDoc.prize;
     const currentAdPrize = currentPrizeDoc.adPrize;
     const currentRaffleFee = raffleFeeDoc.fee;
@@ -128,7 +131,12 @@ router.get('/getPrizesAndWinners', async (req, res) => {
     // Extract the usernames from the user documents
     const topEarnerUsername = topEarnerUser ? topEarnerUser.name : null;
     const topAdClickerUsername = topAdClickerUser ? topAdClickerUser.name : null;
+    const raffleWinnerUsername = raffleWinnerUser ? raffleWinnerUser.name : null;
 
+    // getting users anon status
+    const topEarnerAnon = topEarnerUser ? topEarnerUser.isAnonymous : null;
+    const topAdClickerAnon = topAdClickerUser ? topAdClickerUser.isAnonymous : null;
+    const raffleWinnerAnon = raffleWinnerUser ? raffleWinnerUser.isAnonymous : null;
     // Return the top earners and ad clickers with usernames
     res.json({ 
         topEarner: { userId: topEarnerPrize.userId, username: topEarnerUsername },
@@ -137,9 +145,14 @@ router.get('/getPrizesAndWinners', async (req, res) => {
         topAdClickerUsername,
         topEarnerLastPrize,
         topAdClickerLastPrize,
+        raffleWinnerLastPrize,
         currentPrize,
         currentAdPrize,
-        currentRaffleFee
+        currentRaffleFee,
+        raffleWinnerUsername,
+        topEarnerAnon,
+        topAdClickerAnon,
+        raffleWinnerAnon
     });
   } catch (err) {
       console.error('Error fetching prizes and winners:', err);
@@ -181,7 +194,8 @@ const selectRaffleWinner = async () => {
       const winner = participants[Math.floor(Math.random() * participants.length)];
 
       // Save the winner to the raffleWinners collection or document
-      await RaffleParticipant.create({ userId: winner.userId, category: 'winner' });
+      // await RaffleParticipant.findOneAndUpdate({ userId: winner.userId, category: 'winner' });
+      await Prize.findOneAndUpdate({ category: 'raffleWinner' }, { $set: { userId: winner.userId } }, { upsert: true });
 
       console.log('Raffle winner selected:', winner);
 
@@ -194,7 +208,16 @@ const selectRaffleWinner = async () => {
   }
 };
 
-
+// test
+router.post('/selectWinner', async (req, res) => {
+  try {
+      selectRaffleWinner();
+  } catch (error) {
+      console.error('Error adding participant:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+// end test
 
 // reset and set leadderboard
 // Schedule task to run at 00:00 on Monday (start of the week)
