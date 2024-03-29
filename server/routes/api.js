@@ -175,8 +175,10 @@ const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema,
 
 // get response from blockonomics
 // Route to handle payment confirmation from Blockonomics
-router.get('/payment-confirmation', (req, res) => {
-  // Extract payment data from the request body
+router.post('/payment-confirmation', (req, res) => {
+  try {
+    console.log('communication successful');
+    // Extract payment data from the request body
   const paymentData = req.body;
  
   // Process payment data and update your system accordingly
@@ -200,6 +202,12 @@ router.get('/payment-confirmation', (req, res) => {
 
   // Respond with payment data to the frontend
   res.status(200).json(paymentData);
+    
+} catch (error) {
+    console.error('Error confirming payment:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+}
+  
 });
 
 
