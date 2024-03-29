@@ -173,13 +173,16 @@ const PaymentCallbackSchema = new mongoose.Schema({
 // Create model for payment callback data
 const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema, 'cryptopayment');
 
-// get response from blockonomics
-// Route to handle payment confirmation from Blockonomics
-router.post('/payment-confirmation', (req, res) => {
+
+// callback data
+// Callback endpoint
+router.post('/btc-callback', (req, res) => {
+  const paymentData = req.body;
+
   try {
     console.log('communication successful');
     // Extract payment data from the request body
-  const paymentData = req.body;
+  
  
   // Process payment data and update your system accordingly
   // Create a new PaymentCallback document with the rawData
@@ -197,7 +200,8 @@ router.post('/payment-confirmation', (req, res) => {
       res.status(500).send('Error saving payment callback data'); // Respond with error status
     });
   // Example: Update payment status in your database
-
+   // Process callback data
+  console.log('Received callback data:', callbackData);
   console.log('Payment confirmation received:', paymentData);
 
   // Respond with payment data to the frontend
@@ -207,10 +211,11 @@ router.post('/payment-confirmation', (req, res) => {
     console.error('Error confirming payment:', error);
     res.status(500).json({ error: 'Internal Server Error' });
 }
-  
+ 
+
+
+  res.status(200).end();
 });
-
-
 
 // Backend (Express) - Route to Add Participants
 router.post('/addParticipant', async (req, res) => {
