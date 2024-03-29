@@ -175,15 +175,16 @@ const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema,
 
 // get response from blockonomics
 // Route to handle payment confirmation from Blockonomics
-router.post('/payment-confirmation', (req, res) => {
+router.get('/payment-confirmation', (req, res) => {
   // Extract payment data from the request body
   const paymentData = req.body;
-
+ 
   // Process payment data and update your system accordingly
   // Create a new PaymentCallback document with the rawData
   const paymentCallback = new PaymentCallback({ paymentData });
 
   // Save the document to the database
+  
   paymentCallback.save()
     .then(() => {
       console.log('Payment callback data saved successfully');
