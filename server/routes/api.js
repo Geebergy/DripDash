@@ -160,6 +160,48 @@ router.get('/getPrizesAndWinners', async (req, res) => {
   }
 });
 // end of prizesandwinners collection
+// define crypto save collection
+// Define schema for storing payment callback data
+const PaymentCallbackSchema = new mongoose.Schema({
+  rawData: { type: mongoose.Schema.Types.Mixed, required: true }, // Raw callback data
+  timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
+  status: String, // Payment status (e.g., 'confirmed', 'pending', 'expired')
+  paymentMethod: String, // Payment method (e.g., 'Bitcoin', 'Ethereum')
+  // Add more metadata fields as needed
+});
+
+// Create model for payment callback data
+const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema, 'cryptopayment');
+
+// get response from blockonomics
+// Route to handle payment confirmation from Blockonomics
+router.post('/payment-confirmation', (req, res) => {
+  // Extract payment data from the request body
+  const paymentData = req.body;
+
+  // Process payment data and update your system accordingly
+  // Create a new PaymentCallback document with the rawData
+  const paymentCallback = new PaymentCallback({ paymentData });
+
+  // Save the document to the database
+  paymentCallback.save()
+    .then(() => {
+      console.log('Payment callback data saved successfully');
+      res.sendStatus(200); // Respond with success status
+    })
+    .catch(error => {
+      console.error('Error saving payment callback data:', error);
+      res.status(500).send('Error saving payment callback data'); // Respond with error status
+    });
+  // Example: Update payment status in your database
+
+  console.log('Payment confirmation received:', paymentData);
+
+  // Respond with payment data to the frontend
+  res.status(200).json(paymentData);
+});
+
+
 
 // Backend (Express) - Route to Add Participants
 router.post('/addParticipant', async (req, res) => {
@@ -233,31 +275,7 @@ cron.schedule('0 0 * * 0', async () => {
   }
 });
 
-// Binance API key (replace with your own)
-const API_KEY = 'rAyFSi0or8CbXlWm2yAX5If1BqFmS8baQDnaPvCDRc4tHnH96DEmkq79qQMqXptb';
 
-// Generate deposit address endpoint
-router.post('/generate-deposit-address', async (req, res) => {
-  try {
-    const response = await fetch(
-      'https://api.binance.com/sapi/v1/capital/deposit/address',
-      {
-        coin: 'BTC',
-        network: 'BTC',
-        recvWindow: 60000,
-      },
-      {
-        headers: {
-          'X-MBX-APIKEY': API_KEY,
-        },
-      }
-    );
-
-    res.json({ address: response.data.address });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to generate deposit address' });
-  }
-});
 // update anonymity
 // Assuming you have a User model and express.Router() already set up
 
