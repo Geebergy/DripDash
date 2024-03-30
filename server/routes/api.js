@@ -175,18 +175,20 @@ const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema,
 
 
 // callback data
-// Callback endpoint
-router.post('/btc-callback', (req, res) => {
-  const paymentData = req.body;
-
+router.post('/payment', async (req, res) => {
   try {
-    console.log('communication successful');
-    // Extract payment data from the request body
-  
- 
-  // Process payment data and update your system accordingly
-  // Create a new PaymentCallback document with the rawData
-  const paymentCallback = new PaymentCallback({ paymentData });
+    const { data } = req.body;
+    const API_KEY = 'X3V311Q-YCDM2B7-M8WJWMN-5GYE914';
+
+    const response = await axios.post('https://api-sandbox.nowpayments.io/v1/payment', data, {
+      headers: {
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const paymentData = response.data;
+    const paymentCallback = new PaymentCallback({ paymentData });
 
   // Save the document to the database
   
@@ -199,24 +201,14 @@ router.post('/btc-callback', (req, res) => {
       console.error('Error saving payment callback data:', error);
       res.status(500).send('Error saving payment callback data'); // Respond with error status
     });
-  // Example: Update payment status in your database
-   // Process callback data
-  console.log('Received callback data:', callbackData);
-  console.log('Payment confirmation received:', paymentData);
-
-  // Respond with payment data to the frontend
-  res.status(200).json(paymentData);
-    
-} catch (error) {
-    console.error('Error confirming payment:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-}
- 
-
-
-  res.status(200).end();
+    // Forward response to frontend
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error proxying request:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
-
+// Callback endpoint
 // Backend (Express) - Route to Add Participants
 router.post('/addParticipant', async (req, res) => {
   try {
