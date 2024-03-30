@@ -178,21 +178,11 @@ const PaymentCallbackSchema = new mongoose.Schema({
 // Create model for payment callback data
 const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema, 'cryptopayment');
 
-
-// callback data
-router.post('/payment', async (req, res) => {
+// save data
+// Define a route to handle transaction creation
+router.post('/saveCryptoPayments', async (request, response) => {
   try {
-    const { data } = req.body;
-    const API_KEY = 'ANAVJWM-2GKMRZJ-GV6RDW4-J1N753D';
-
-    const response = await axios.post('https://api.nowpayments.io/v1/payment', data, {
-      headers: {
-        'x-api-key': API_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const paymentData = response.data;
+    const paymentData = response.body;
     const paymentCallback = new PaymentCallback({ paymentData });
 
   // Save the document to the database
@@ -206,6 +196,28 @@ router.post('/payment', async (req, res) => {
       console.error('Error saving payment callback data:', error);
       res.status(500).send('Error saving payment callback data'); // Respond with error status
     });
+
+    response.status(201).json({ message: 'Transaction document written' });
+  } catch (error) {
+    console.error('Error adding transaction document: ', error);
+    response.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+// ...
+// callback data
+router.post('/payment', async (req, res) => {
+  try {
+    const { data } = req.body;
+    const API_KEY = 'ANAVJWM-2GKMRZJ-GV6RDW4-J1N753D';
+
+    const response = await axios.post('https://api.nowpayments.io/v1/payment', data, {
+      headers: {
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+  res.json(response.data);
   } catch (error) {
     console.error('Error proxying request:', error);
     res.status(500).json({ error: 'Internal server error' });
