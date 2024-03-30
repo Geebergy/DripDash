@@ -168,7 +168,11 @@ const PaymentCallbackSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
   status: String, // Payment status (e.g., 'confirmed', 'pending', 'expired')
   paymentMethod: String, // Payment method (e.g., 'Bitcoin', 'Ethereum')
-  // Add more metadata fields as needed
+  payment_id: Number,
+  payment_status: String,
+  pay_address: String,
+  price_amount: Number,
+  order_description: String
 });
 
 // Create model for payment callback data
@@ -209,7 +213,20 @@ router.post('/payment', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-// Callback endpoint
+// Callback endpoint (crypto)
+
+router.post('/crypto-callback', async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    res.json(data);
+    console.log(data);
+  } catch (error) {
+    console.error('Error proxying request:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// 
 // Backend (Express) - Route to Add Participants
 router.post('/addParticipant', async (req, res) => {
   try {
@@ -1118,6 +1135,7 @@ const updateBonus = async (userId, reward, taskID) => {
 router.post('/updateBonusAfterTask', async (req, res) => {
   const {
     userID,
+    userRole,
     activeTaskOne,
     activeTaskTwo,
     activeTaskThree,
@@ -1150,27 +1168,52 @@ router.post('/updateBonusAfterTask', async (req, res) => {
     try {
       // task one confirmed
       if (isTaskActuallyConfirmed && activeTaskOne) {
-        await updateBonus(userID, activeTaskOne.reward, activeTaskOne.taskID);
+        if(userRole === 'crypto'){
+          await updateBonus(userID, activeTaskOne.reward / 150, activeTaskOne.taskID);
+        }
+        else{
+          await updateBonus(userID, activeTaskOne.reward, activeTaskOne.taskID);
+        }
       }
 
       // task two confirmed
       if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
-        await updateBonus(userID, activeTaskTwo.reward, activeTaskTwo.taskID);
+        if(userRole === 'crypto'){
+          await updateBonus(userID, activeTaskTwo.reward / 150, activeTaskTwo.taskID);
+        }
+        else{
+          await updateBonus(userID, activeTaskTwo.reward, activeTaskTwo.taskID);
+        }
       }
 
       // task three confirmed
       if (isTaskActuallyConfirmedThree && activeTaskThree) {
-        await updateBonus(userID, activeTaskThree.reward, activeTaskThree.taskID);
+        if(userRole === 'crypto'){
+          await updateBonus(userID, activeTaskThree.reward / 150, activeTaskThree.taskID);
+        }
+        else{
+          await updateBonus(userID, activeTaskThree.reward, activeTaskThree.taskID);
+        }
       }
 
       // task four confirmed
       if (isTaskActuallyConfirmedFour && activeTaskFour) {
-        await updateBonus(userID, activeTaskFour.reward, activeTaskFour.taskID);
+        if(userRole === 'crypto'){
+          await updateBonus(userID, activeTaskFour.reward / 150, activeTaskFour.taskID);
+        }
+        else{
+          await updateBonus(userID, activeTaskFour.reward, activeTaskFour.taskID);
+        }
       }
 
       // task five confirmed
       if (isTaskActuallyConfirmedFive && activeTaskFive) {
-        await updateBonus(userID, activeTaskFive.reward, activeTaskFive.taskID);
+        if(userRole === 'crypto'){
+          await updateBonus(userID, activeTaskFive.reward / 150, activeTaskFive.taskID);
+        }
+        else{
+          await updateBonus(userID, activeTaskFive.reward, activeTaskFive.taskID);
+        }
       }
 
       // Notify success
