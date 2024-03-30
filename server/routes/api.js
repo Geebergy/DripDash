@@ -179,7 +179,7 @@ const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema,
 router.post('/payment', async (req, res) => {
   try {
     const { data } = req.body;
-    const API_KEY = 'X3V311Q-YCDM2B7-M8WJWMN-5GYE914';
+    const API_KEY = 'ANAVJWM-2GKMRZJ-GV6RDW4-J1N753D';
 
     const response = await axios.post('https://api-sandbox.nowpayments.io/v1/payment', data, {
       headers: {
