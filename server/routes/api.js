@@ -164,7 +164,7 @@ router.get('/getPrizesAndWinners', async (req, res) => {
 // define crypto save collection
 // Define schema for storing payment callback data
 const PaymentCallbackSchema = new mongoose.Schema({
-  rawData: { type: mongoose.Schema.Types.Mixed, required: true }, // Raw callback data
+  rawData: { type: mongoose.Schema.Types.Mixed }, // Raw callback data
   timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
   status: String, // Payment status (e.g., 'confirmed', 'pending', 'expired')
   paymentMethod: String, // Payment method (e.g., 'Bitcoin', 'Ethereum')
