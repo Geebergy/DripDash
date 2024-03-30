@@ -181,7 +181,7 @@ router.post('/payment', async (req, res) => {
     const { data } = req.body;
     const API_KEY = 'ANAVJWM-2GKMRZJ-GV6RDW4-J1N753D';
 
-    const response = await axios.post('https://api-sandbox.nowpayments.io/v1/payment', data, {
+    const response = await axios.post('https://api.nowpayments.io/v1/payment', data, {
       headers: {
         'x-api-key': API_KEY,
         'Content-Type': 'application/json'
