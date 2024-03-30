@@ -206,8 +206,6 @@ router.post('/payment', async (req, res) => {
       console.error('Error saving payment callback data:', error);
       res.status(500).send('Error saving payment callback data'); // Respond with error status
     });
-    // Forward response to frontend
-    res.json(response.data);
   } catch (error) {
     console.error('Error proxying request:', error);
     res.status(500).json({ error: 'Internal server error' });
