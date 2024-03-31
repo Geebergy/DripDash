@@ -166,7 +166,7 @@ router.get('/getPrizesAndWinners', async (req, res) => {
 const PaymentCallbackSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
   userID: String,
-  payment_id: Number,
+  payment_id: String,
   payment_status: String,
   pay_address: String,
   price_amount: Number,
@@ -1454,6 +1454,53 @@ router.put('/updateUserBalance/:transactionId', async (request, response) => {
           { userId },
           {
             $inc: { referralsBalance: price_amount, weeklyReferrals: price_amount }
+          }
+        );
+      }
+      
+
+    // Delete the document
+    await PaymentCallback.deleteOne({ payment_id : transactionId });
+
+    response.sendStatus(200); // Respond with success status
+  } catch (error) {
+    console.error('Error updating user balance and deleting document:', error);
+    response.status(500).send('Error updating user balance and deleting document');
+  }
+});
+
+
+// // GET BTC WITHDRAWAL TX
+// get pending deposits and transactions
+router.get('/getBtcWithdrawals', async (req, res) => {
+  try {
+    const btcDeposits = await PaymentCallback.find({order_description: 'Crypto Withdrawal'});
+    res.json(btcDeposits);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+// handling crypto account activation
+router.put('/updateUserWithdrawal/:transactionId', async (request, response) => {
+  try {
+    const { transactionId } = request.params;
+    const { newStatus, userId, price_amount } = request.body;
+
+    // Update payment status in the database
+    await Transaction.findOneAndUpdate(
+      { paymentID: transactionId},
+      { status: newStatus },
+      { new: true }
+    );
+
+    // Update current user's account balance
+      if(newStatus === 'success'){
+        await User.updateOne(
+          { userId },
+          {
+            $inc: { referralsBalance: -price_amount }
           }
         );
       }
