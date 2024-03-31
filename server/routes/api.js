@@ -1303,25 +1303,6 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
     const currentUserReferralRedeemed = currentUser.referralRedeemed;
     const currentUserReferrerTotalReferrals = currentUserReferrer?.totalReferrals || null;
 
-    if (!currentUserIsActive) {
-      // Update user's balance after account activation
-      await User.updateOne(
-        { userId: userID },
-        {
-          $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
-          $inc: { deposit: 20, dailyDropBalance: 10 }
-        }
-      );
-    } else {
-      // Update user's balance after account activation (without dailyDropBalance increment)
-      await User.updateOne(
-        { userId: userID },
-        {
-          $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
-          $inc: { deposit: 20 }
-        }
-      );
-    }
 
     // Check if the referral commission has been redeemed
     if (!currentUserReferralRedeemed) {
@@ -1344,7 +1325,26 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
     }
 
     // Update current user's account balance
-    await updateCurrentUserAccountBalance(userID);
+    
+    if (!currentUserIsActive) {
+      // Update user's balance after account activation
+      await User.updateOne(
+        { userId: userID },
+        {
+          $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
+          $inc: { deposit: 20, dailyDropBalance: 10 }
+        }
+      );
+    } else {
+      // Update user's balance after account activation (without dailyDropBalance increment)
+      await User.updateOne(
+        { userId: userID },
+        {
+          $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
+          $inc: { deposit: 20 }
+        }
+      );
+    }
 
     // Delete the document
     await PaymentCallback.deleteOne({ payment_id });
