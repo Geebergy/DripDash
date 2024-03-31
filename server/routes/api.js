@@ -196,8 +196,6 @@ router.post('/saveCryptoPayments', async (request, response) => {
       console.error('Error saving payment callback data:', error);
       response.status(500).send('Error saving payment callback data'); // Respond with error status
     });
-
-    response.status(201).json({ message: 'Transaction document written' });
   } catch (error) {
     console.error('Error adding transaction document: ', error);
     response.status(500).json({ error: 'Internal Server Error' });
