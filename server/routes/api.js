@@ -190,11 +190,11 @@ router.post('/saveCryptoPayments', async (request, response) => {
     .then(() => {
       console.log('Payment callback data saved successfully');
       selectRaffleWinner();
-      res.sendStatus(200); // Respond with success status
+      response.sendStatus(200); // Respond with success status
     })
     .catch(error => {
       console.error('Error saving payment callback data:', error);
-      res.status(500).send('Error saving payment callback data'); // Respond with error status
+      response.status(500).send('Error saving payment callback data'); // Respond with error status
     });
 
     response.status(201).json({ message: 'Transaction document written' });
