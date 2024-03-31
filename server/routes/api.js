@@ -268,8 +268,8 @@ const selectRaffleWinner = async () => {
       const winner = participants[Math.floor(Math.random() * participants.length)];
 
       // Save the winner to the raffleWinners collection or document
-      // await RaffleParticipant.findOneAndUpdate({ userId: winner.userId, category: 'winner' });
-      await Prize.findOneAndUpdate({ category: 'raffleWinner' }, { $set: { userId: winner.userId, prize: 0 } }, { upsert: true });
+      await RaffleParticipant.findOneAndUpdate({ userId: winner.userId, category: 'winner' }, {$set : {prize: 0}});
+      // await Prize.findOneAndUpdate({ category: 'raffleWinner' }, { $set: { userId: winner.userId, prize: 0 } }, { upsert: true });
 
       console.log('Raffle winner selected:', winner);
 
