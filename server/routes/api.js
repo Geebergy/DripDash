@@ -165,7 +165,7 @@ router.get('/getPrizesAndWinners', async (req, res) => {
 // Define schema for storing payment callback data
 const PaymentCallbackSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
-  status: String, // Payment status (e.g., 'confirmed', 'pending', 'expired')
+  userID: String,
   paymentMethod: String, // Payment method (e.g., 'Bitcoin', 'Ethereum')
   payment_id: Number,
   payment_status: String,
@@ -268,8 +268,8 @@ const selectRaffleWinner = async () => {
       const winner = participants[Math.floor(Math.random() * participants.length)];
 
       // Save the winner to the raffleWinners collection or document
-      await RaffleParticipant.findOneAndUpdate({ userId: winner.userId, category: 'winner' }, {$set : {prize: 0}});
-      // await Prize.findOneAndUpdate({ category: 'raffleWinner' }, { $set: { userId: winner.userId, prize: 0 } }, { upsert: true });
+      // await RaffleParticipant.findOneAndUpdate({ userId: winner.userId, category: 'winner' }, {$set : {prize: 0}});
+      await Prize.findOneAndUpdate({ category: 'raffleWinner' }, { $set: { userId: winner.userId, prize: 0 } }, { upsert: true });
 
       console.log('Raffle winner selected:', winner);
 
