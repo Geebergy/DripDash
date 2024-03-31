@@ -263,12 +263,26 @@ const selectRaffleWinner = async () => {
   try {
       // Fetch all participants from the raffleParticipants collection
       const participants = await RaffleParticipant.find({ category: 'participant' });
+      
+      console.log('Participants:', participants); // Log participants array
+      
+      // Check if there are any participants
+      if (participants.length === 0) {
+          console.log('No participants found.');
+          return; // Exit function early if no participants
+      }
 
       // Select a random participant as the winner
       const winner = participants[Math.floor(Math.random() * participants.length)];
+      
+      console.log('Winner:', winner); // Log winner
+      
+      if (!winner) {
+          console.log('Winner is undefined.');
+          return; // Exit function early if winner is undefined
+      }
 
       // Save the winner to the raffleWinners collection or document
-      // await RaffleParticipant.findOneAndUpdate({ userId: winner.userId, category: 'winner' }, {$set : {prize: 0}});
       await Prize.findOneAndUpdate({ category: 'raffleWinner' }, { $set: { userId: winner.userId, prize: 0 } }, { upsert: true });
 
       console.log('Raffle winner selected:', winner);
@@ -281,6 +295,7 @@ const selectRaffleWinner = async () => {
       console.error('Error selecting raffle winner:', error);
   }
 };
+
 
 
 // reset and set leadderboard
