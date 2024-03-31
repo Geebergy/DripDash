@@ -806,6 +806,7 @@ const transactionSchema = new mongoose.Schema({
   status: String,
   timestamp: Date,
   transactionType: String,
+  paymentID: String
 });
 
 // Create a model based on the schema
