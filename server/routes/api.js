@@ -181,25 +181,24 @@ const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema,
 router.post('/saveCryptoPayments', async (request, response) => {
   try {
     const paymentData = request.body;
-    const paymentCallback = new PaymentCallback({ paymentData });
+    const paymentCallback = new PaymentCallback(paymentData);
 
-  // Save the document to the database
-  
-  paymentCallback.save()
-    .then(() => {
-      console.log('Payment callback data saved successfully');
-      selectRaffleWinner();
-      response.sendStatus(200); // Respond with success status
-    })
-    .catch(error => {
-      console.error('Error saving payment callback data:', error);
-      response.status(500).send('Error saving payment callback data'); // Respond with error status
-    });
+    // Save the document to the database
+    paymentCallback.save()
+      .then(() => {
+        console.log('Payment callback data saved successfully');
+        response.sendStatus(200); // Respond with success status
+      })
+      .catch(error => {
+        console.error('Error saving payment callback data:', error);
+        response.status(500).send('Error saving payment callback data'); // Respond with error status
+      });
   } catch (error) {
     console.error('Error adding transaction document: ', error);
     response.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 // ...
 // callback data
 router.post('/payment', async (req, res) => {
