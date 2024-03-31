@@ -1279,7 +1279,7 @@ router.get('/getTasks', async (req, res) => {
 // get pending deposits and transactions
 router.get('/getBtcDeposits', async (req, res) => {
   try {
-    const btcDeposits = await PaymentCallback.find();
+    const btcDeposits = await PaymentCallback.find({order_description: 'Crypto Deposit'});
     res.json(btcDeposits);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
