@@ -1307,11 +1307,11 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
 
     const currentUserIsActive = currentUser.isUserActive;
     const currentUserReferralRedeemed = currentUser.referralRedeemed;
-    const currentUserReferrerTotalReferrals = currentUserReferrer.totalReferrals || null;
+    const currentUserReferrerTotalReferrals = currentUserReferrer ? currentUserReferrer.totalReferrals : null;
 
 
     // Check if the referral commission has been redeemed
-    if (!currentUserReferralRedeemed) {
+    if (!currentUserReferralRedeemed && currentUserReferrerId) {
       // Calculate commission based on referral tier
       let commissionRate = 0.17; // Default commission rate for tier 0
       if (currentUserReferrerTotalReferrals !== null) {
