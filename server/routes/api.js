@@ -1353,7 +1353,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
     }
 
     // Delete the document
-    await PaymentCallback.deleteOne({ payment_id });
+    await PaymentCallback.deleteOne({ payment_id : transactionId });
 
     response.sendStatus(200); // Respond with success status
   } catch (error) {
