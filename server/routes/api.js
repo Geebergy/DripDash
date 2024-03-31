@@ -425,7 +425,7 @@ router.post('/updateAccountLimit', async (req, res) => {
         const referralsCount = referredByUserDoc.referralsCount;
         const hasUserPaid = referredByUserDoc.hasPaid;
 
-        const amount = 4500;
+        const amount = referredByUserDoc.reserveAccountLimit;
 
         // Check if the user has three referrals and isAccountActive
         if (referralsCount >= 3 && isAccountActive && hasUserPaid) {
@@ -451,7 +451,7 @@ router.post('/updateAccountLimit', async (req, res) => {
           const currentUserReferralsCount = currentUserDoc.referralsCount;
           const currentUserPaid = currentUserDoc.hasPaid;
   
-          const amount = 4500;
+          const amount = currentUserDoc.reserveAccountLimit;
   
           // Check if the user has three referrals and isCurrentAccountActive
           if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
@@ -488,7 +488,7 @@ router.post('/updateAccountLimit', async (req, res) => {
         const currentUserReferralsCount = currentUserDoc.referralsCount;
         const currentUserPaid = currentUserDoc.hasPaid;
 
-        const amount = 4500;
+        const amount = currentUserDoc.reserveAccountLimit;
 
         // Check if the user has three referrals and isCurrentAccountActive
         if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
@@ -742,12 +742,14 @@ router.post("/creditReferrer", async (request, response) => {
         else if (referredByUserTotalReferrals >= 3) commissionRate = 0.20;
       }
       const commission = commissionRate * (referredByUserRole === 'crypto' ? 20 : 3000);
+  
+      const revenueAdd = referredByUserRole === 'crypto' ? 2 : 1333;
 
        // Update referrer's commission
        await User.updateOne(
         { userId: userId },
         {
-          $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission }
+          $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd}
         }
       );
 
