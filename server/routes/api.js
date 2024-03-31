@@ -729,24 +729,30 @@ router.post("/creditReferrer", async (request, response) => {
   const referralsBalance = userDetails.referralsBalance;
 
   try {
-    const doesDataExist = await User.findOne({ userId: userId });
+    const referredByUser = await User.findOne({ userId: userId });
+    const referredByUserRole = referredByUser ? referredByUser.role : null;
+    const referredByUserTotalReferrals = referredByUser ? referredByUser.totalReferrals : null;
 
     // Example 2: Incrementing referredUsers field
-    if (doesDataExist) {
-      await User.updateOne(
+    if (referredByUser) {
+        let commissionRate = 0.17; // Default commission rate for tier 0
+        if (referredByUserTotalReferrals !== null) {
+        if (referredByUserTotalReferrals >= 9) commissionRate = 0.3;
+        else if (referredByUserTotalReferrals >= 6) commissionRate = 0.25;
+        else if (referredByUserTotalReferrals >= 3) commissionRate = 0.20;
+      }
+      const commission = commissionRate * (referredByUserRole === 'crypto' ? 20 : 3000);
+
+       // Update referrer's commission
+       await User.updateOne(
         { userId: userId },
         {
-          $set: {
-            balance,
-            referralsCount,
-            totalReferrals,
-            referralsBalance,
-          },
-          $inc: { referredUsers: -1, weeklyEarnings: referralsBalance }, // Decrement referredUsers by 1
+          $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission }
         }
       );
 
-      response.send({ status: "successful", referrerData: doesDataExist });
+      response.send({ status: "successful", referrerData: referredByUser });
+
     } else {
       response.send({ status: "failed" });
     }
@@ -1301,7 +1307,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
 
     const currentUserIsActive = currentUser.isUserActive;
     const currentUserReferralRedeemed = currentUser.referralRedeemed;
-    const currentUserReferrerTotalReferrals = currentUserReferrer?.totalReferrals || null;
+    const currentUserReferrerTotalReferrals = currentUserReferrer.totalReferrals || null;
 
 
     // Check if the referral commission has been redeemed
@@ -1313,13 +1319,13 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
         else if (currentUserReferrerTotalReferrals >= 6) commissionRate = 0.25;
         else if (currentUserReferrerTotalReferrals >= 3) commissionRate = 0.20;
       }
-      const commission = commissionRate * (currentUserReferrer?.role === 'crypto' ? 20 : 3000);
+      const commission = commissionRate * (currentUserReferrer.role === 'crypto' ? 20 : 3000);
 
       // Update referrer's commission
       await User.updateOne(
         { userId: currentUserReferrerId },
         {
-          $inc: { referralsCount: -1, totalReferrals: 1, referralsBalance: commission }
+          $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission }
         }
       );
     }
