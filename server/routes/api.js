@@ -1285,11 +1285,11 @@ router.get('/getBtcDeposits', async (req, res) => {
 router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, response) => {
   try {
     const { transactionId } = request.params;
-    const { newStatus, payment_id, userID } = request.body;
+    const { newStatus, userID } = request.body;
 
     // Update payment status in the database
     await Transaction.findOneAndUpdate(
-      { payment_id },
+      { payment_id: transactionId},
       { status: newStatus },
       { new: true }
     );
