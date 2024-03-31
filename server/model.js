@@ -5,6 +5,7 @@ const schema = new mongoose.Schema({
     number: String,
     role: String,
     accountLimit : Number,
+    reserveAccountLimit: Number,
     balance: Number,
     deposit: Number,
     referralsBalance : Number,
