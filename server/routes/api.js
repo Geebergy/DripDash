@@ -1355,6 +1355,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
     // Delete the document
     await PaymentCallback.deleteOne({ payment_id : transactionId });
 
+    console.log(`this is the referrer id: ${currentUserReferrerId}, this is the referrer data: ${currentUserReferrer}, this is the current user data: ${currentUser}, this is if the current user is active: ${currentUserIsActive}, this is if the current user has their referral redeemed already: ${currentUserReferralRedeemed}, this is the referrer's total referrals: ${currentUserReferrerTotalReferrals}`)
     response.sendStatus(200); // Respond with success status
   } catch (error) {
     console.error('Error updating payment status and deleting document:', error);
