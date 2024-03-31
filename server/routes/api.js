@@ -1301,7 +1301,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
     );
 
     const currentUser = await User.findOne({ userId: userID });
-    const currentUserReferrerId = await User.findOne({ userId: currentUser.referredBy });
+    const currentUserReferrerId = currentUser.referredBy;
     const currentUserReferrer = await User.findOne({ userId: currentUserReferrerId });
     
 
