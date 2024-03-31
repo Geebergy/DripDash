@@ -166,7 +166,6 @@ router.get('/getPrizesAndWinners', async (req, res) => {
 const PaymentCallbackSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
   userID: String,
-  paymentMethod: String, // Payment method (e.g., 'Bitcoin', 'Ethereum')
   payment_id: Number,
   payment_status: String,
   pay_address: String,
@@ -181,7 +180,7 @@ const PaymentCallback = mongoose.model('PaymentCallback', PaymentCallbackSchema,
 // Define a route to handle transaction creation
 router.post('/saveCryptoPayments', async (request, response) => {
   try {
-    const paymentData = response.body;
+    const paymentData = request.body;
     const paymentCallback = new PaymentCallback({ paymentData });
 
   // Save the document to the database
