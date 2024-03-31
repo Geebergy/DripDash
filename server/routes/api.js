@@ -1291,7 +1291,7 @@ router.get('/getBtcDeposits', async (req, res) => {
 router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, response) => {
   try {
     const { transactionId } = request.params;
-    const { newStatus, userID } = request.body;
+    const { newStatus, userId } = request.body;
 
     // Update payment status in the database
     await Transaction.findOneAndUpdate(
@@ -1300,7 +1300,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
       { new: true }
     );
 
-    const currentUser = await User.findOne({ userId: userID });
+    const currentUser = await User.findOne({ userId });
     const currentUserReferrerId = currentUser.referredBy;
     const currentUserReferrer = await User.findOne({ userId: currentUserReferrerId });
     
@@ -1311,7 +1311,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
 
 
     // Check if the referral commission has been redeemed
-    if (!currentUserReferralRedeemed && currentUserReferrerId) {
+    if (!currentUserReferralRedeemed && currentUserReferrerId !== 'none') {
       // Calculate commission based on referral tier
       let commissionRate = 0.17; // Default commission rate for tier 0
       if (currentUserReferrerTotalReferrals !== null) {
@@ -1335,7 +1335,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
     if (!currentUserIsActive) {
       // Update user's balance after account activation
       await User.updateOne(
-        { userId: userID },
+        { userId },
         {
           $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
           $inc: { deposit: 20, dailyDropBalance: 10 }
@@ -1344,7 +1344,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
     } else {
       // Update user's balance after account activation (without dailyDropBalance increment)
       await User.updateOne(
-        { userId: userID },
+        { userId },
         {
           $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
           $inc: { deposit: 20 }
