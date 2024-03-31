@@ -32,6 +32,7 @@ const schema = new mongoose.Schema({
     weeklyEarnings: Number,
     isAnonymous: Boolean,
     slots: Number,
+    previousReferralsBalance: { type: Number, default: 0 },
   });
 
  
