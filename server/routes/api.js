@@ -84,6 +84,71 @@ router.post("/addUser", async (request, response) => {
     response.status(500).send(error);
   }
 });
+// update users on referrals change
+
+// Function to watch referralsBalance for all users
+async function watchReferralsBalanceForAllUsers() {
+  // Set up a change stream for the referralsBalance field for all users
+  const changeStream = User.watch();
+
+  // Watch for changes in the referralsBalance field for all users
+  changeStream.on('change', async change => {
+    if (change.operationType === 'update') {
+      const { userId, referralsBalance } = change.fullDocument;
+      console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
+
+      // Fetch the user details of the user who referred this user
+      const referringUser = await User.findOne({ userId: change.fullDocument.referredBy });
+
+      // Calculate increase in referrals balance
+      const increase = referralsBalance - (change.fullDocument.previousReferralsBalance || 0);
+
+      const userRole = change.fullDocument.role;
+      // Update referring user's referrals balance if increase is positive
+      if(userRole === 'crypto'){
+        // this is a crypto account crediting...
+        if (referringUser && referringUser.role === 'crypto' && increase > 0) {
+          const bonus = increase * 0.1; // 10% of the increase
+          referringUser.referralsBalance += bonus;
+          await referringUser.save();
+          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
+        }
+        else{
+          // this naira account is being credited by a crypto account
+          const bonus = increase * 50; // 10% of the increase
+          referringUser.referralsBalance += bonus;
+          await referringUser.save();
+          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
+        }
+      }
+      else{
+        // this is a naira account crediting...
+        if (referringUser && referringUser.role === 'crypto' && increase > 0) {
+          const bonus = increase * 0.0005; // 10% of the increase
+          referringUser.referralsBalance += bonus;
+          await referringUser.save();
+          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
+        }
+        else{
+          // naira being credited by naira...
+          const bonus = increase * 0.05; // 10% of the increase
+          referringUser.referralsBalance += bonus;
+          await referringUser.save();
+          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
+        }
+      }
+
+      // Update user's previousReferralsBalance
+      change.fullDocument.previousReferralsBalance = referralsBalance;
+      await User.findOneAndUpdate({ userId: userId }, { previousReferralsBalance: referralsBalance });
+    }
+  });
+}
+
+// Example usage: Watch referralsBalance for all users
+watchReferralsBalanceForAllUsers();
+
+// ...
 // fetch prizes and winners
 const prizesAndWinnersSchema = new mongoose.Schema({
   lastWinner: String,
@@ -741,7 +806,7 @@ router.post("/creditReferrer", async (request, response) => {
         else if (referredByUserTotalReferrals >= 6) commissionRate = 0.25;
         else if (referredByUserTotalReferrals >= 3) commissionRate = 0.20;
       }
-      const commission = commissionRate * (referredByUserRole === 'crypto' ? 20 : 3000);
+      const commission = commissionRate * (referredByUserRole === 'crypto' ? 2 : 3000);
   
       const revenueAdd = referredByUserRole === 'crypto' ? 2 : 1333;
 
@@ -1322,7 +1387,8 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
           else if (currentUserReferrerTotalReferrals >= 6) commissionRate = 0.25;
           else if (currentUserReferrerTotalReferrals >= 3) commissionRate = 0.20;
         }
-        const commission = commissionRate * (currentUserReferrer.role === 'crypto' ? 20 : 3000);
+        // note that this commission is coming from a crypto account
+        const commission = commissionRate * (currentUserReferrer.role === 'crypto' ? 20 : 14000);
   
         // Update referrer's commission
         await User.updateOne(
