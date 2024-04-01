@@ -81,8 +81,12 @@ async function watchReferralsBalanceForAllUsers() {
   changeStream.on('change', async change => {
     console.log(JSON.stringify(change));
     if (change.operationType === 'update' && change.fullDocument) { // Check if fullDocument exists
-      const { userId, referralsBalance } = change.fullDocument;
+      const userID = change.documentKey._id;
+      // Fetch the full document to get referralsBalance
+      const user = await User.findById(userID);
+      const { userId, referralsBalance } = user;
       console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
+        
 
       // Fetch the user details of the user who referred this user
       const referringUser = await User.findOne({ userId: change.fullDocument.referredBy });
