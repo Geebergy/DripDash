@@ -1389,12 +1389,13 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
         }
         // note that this commission is coming from a crypto account
         const commission = commissionRate * (currentUserReferrer.role === 'crypto' ? 20 : 14000);
+        const revenueAdd = currentUserReferrer.role === 'crypto' ? 2 : 1333;
   
         // Update referrer's commission
         await User.updateOne(
           { userId: currentUserReferrerId },
           {
-            $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission }
+            $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd }
           }
         );
       }
