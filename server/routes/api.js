@@ -79,7 +79,6 @@ async function watchReferralsBalanceForAllUsers() {
 
   // Watch for changes in the referralsBalance field for all users
   changeStream.on('change', async change => {
-    console.log(JSON.stringify(change));
     if (change.operationType === 'update' && change.documentKey._id) { // Check if fullDocument exists
       const userID = change.documentKey._id;
       // Fetch the full document to get referralsBalance
@@ -96,38 +95,25 @@ async function watchReferralsBalanceForAllUsers() {
 
       const userRole = user.role;
       // Update referring user's referrals balance if increase is positive
-      if(userRole === 'crypto'){
-        // this is a crypto account crediting...
-        if (referringUser && referringUser.role === 'crypto' && increase > 0) {
-          const bonus = increase * 0.1; // 10% of the increase
-          referringUser.referralsBalance += bonus;
-          await referringUser.save();
-          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
+      // Update referring user's referrals balance based on userRole
+      if (userRole === 'crypto') {
+        // Crypto account crediting
+        if (referringUser && increase > 0) {
+            const bonus = referringUser.role === 'crypto' ? increase * 0.1 : increase * 50;
+            referringUser.referralsBalance += bonus;
+            await referringUser.save();
+            console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
         }
-        else{
-          // this naira account is being credited by a crypto account
-          const bonus = increase * 50; // 10% of the increase
-          referringUser.referralsBalance += bonus;
-          await referringUser.save();
-          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
-        }
-      }
-      else{
-        // this is a naira account crediting...
-        if (referringUser && referringUser.role === 'crypto' && increase > 0) {
-          const bonus = increase * 0.0005; // 10% of the increase
-          referringUser.referralsBalance += bonus;
-          await referringUser.save();
-          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
-        }
-        else{
-          // naira being credited by naira...
-          const bonus = increase * 0.05; // 10% of the increase
-          referringUser.referralsBalance += bonus;
-          await referringUser.save();
-          console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
+      } else {
+        // Naira account crediting
+        if (referringUser && increase > 0) {
+            const bonus = referringUser.role === 'crypto' ? increase * 0.0005 : increase * 0.05;
+            referringUser.referralsBalance += bonus;
+            await referringUser.save();
+            console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
         }
       }
+
 
       // Update user's previousReferralsBalance
       user.previousReferralsBalance = referralsBalance;
