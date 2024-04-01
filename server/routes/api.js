@@ -22,21 +22,7 @@ async function connectToMongoDB() {
 
 connectToMongoDB();
 
-// Sample endpoint to fetch data
-router.get('/getData', async (req, res) => {
-  // const db = client.db('userTest');
-  // const collection = db.collection('people');
-  
-  // try {
-  //   const data = await collection.find({}).toArray();
-  //   res.json(data);
-  //   console.log(`this is the user data: ${res.json(data)}`)
-  // } catch (error) {
-  //   console.error('Error fetching data', error);
-  //   res.status(500).json({ error: 'Internal Server Error' });
-  // }
-  res.send('user data')
-});
+
 
 // create user
 router.post("/createUser", async (request, response) => {
@@ -93,7 +79,7 @@ async function watchReferralsBalanceForAllUsers() {
 
   // Watch for changes in the referralsBalance field for all users
   changeStream.on('change', async change => {
-    if (change.operationType === 'update') {
+    if (change.operationType === 'update' && change.fullDocument) { // Check if fullDocument exists
       const { userId, referralsBalance } = change.fullDocument;
       console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
 
