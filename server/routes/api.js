@@ -80,7 +80,7 @@ async function watchReferralsBalanceForAllUsers() {
   // Watch for changes in the referralsBalance field for all users
   changeStream.on('change', async change => {
     console.log(JSON.stringify(change));
-    if (change.operationType === 'update' && change.fullDocument) { // Check if fullDocument exists
+    if (change.operationType === 'update' && change.documentKey._id) { // Check if fullDocument exists
       const userID = change.documentKey._id;
       // Fetch the full document to get referralsBalance
       const user = await User.findById(userID);
@@ -89,12 +89,12 @@ async function watchReferralsBalanceForAllUsers() {
         
 
       // Fetch the user details of the user who referred this user
-      const referringUser = await User.findOne({ userId: change.fullDocument.referredBy });
+      const referringUser = await User.findOne({ userId: user.referredBy });
 
       // Calculate increase in referrals balance
-      const increase = referralsBalance - (change.fullDocument.previousReferralsBalance || 0);
+      const increase = referralsBalance - (user.previousReferralsBalance || 0);
 
-      const userRole = change.fullDocument.role;
+      const userRole = user.role;
       // Update referring user's referrals balance if increase is positive
       if(userRole === 'crypto'){
         // this is a crypto account crediting...
@@ -130,7 +130,7 @@ async function watchReferralsBalanceForAllUsers() {
       }
 
       // Update user's previousReferralsBalance
-      change.fullDocument.previousReferralsBalance = referralsBalance;
+      user.previousReferralsBalance = referralsBalance;
       await User.findOneAndUpdate({ userId: userId }, { previousReferralsBalance: referralsBalance });
     }
   });
