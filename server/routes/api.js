@@ -79,6 +79,7 @@ async function watchReferralsBalanceForAllUsers() {
 
   // Watch for changes in the referralsBalance field for all users
   changeStream.on('change', async change => {
+    console.log(JSON.stringify(change));
     if (change.operationType === 'update' && change.fullDocument) { // Check if fullDocument exists
       const { userId, referralsBalance } = change.fullDocument;
       console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
