@@ -399,12 +399,7 @@ router.get('/top-earners', async (req, res) => {
       endOfWeek.setHours(23, 59, 59, 999);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      const topEarners = await User.find({
-          lastLogin: {
-              $gte: startOfWeek,
-              $lte: endOfWeek
-          }
-      }).sort({ weeklyReferrals: -1 }).limit(10);
+      const topEarners = await User.find().sort({ weeklyReferrals: -1 }).limit(10);
 
       res.json(topEarners);
   } catch (err) {
@@ -424,12 +419,7 @@ router.get('/top-ad-clickers', async (req, res) => {
       endOfWeek.setHours(23, 59, 59, 999);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      const topAdClickers = await User.find({
-          lastLogin: {
-              $gte: startOfWeek,
-              $lte: endOfWeek
-          }
-      }).sort({ adsClicked: -1 }).limit(10);
+      const topAdClickers = await User.find().sort({ adsClicked: -1 }).limit(10);
 
       res.json(topAdClickers);
   } catch (err) {
