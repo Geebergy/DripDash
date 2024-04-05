@@ -101,7 +101,7 @@ async function watchReferralsBalanceForAllUsers() {
         if (referringUser && increase > 0) {
             const bonus = referringUser.role === 'crypto' ? increase * 0.1 : increase * 50;
             referringUser.referralsBalance += bonus;
-            referringUser.weeklyEarnings += bonus;
+            referringUser.weeklyEarnings = (referringUser.weeklyEarnings || 0) + bonus;
             await referringUser.save();
             console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
         }
@@ -110,7 +110,7 @@ async function watchReferralsBalanceForAllUsers() {
         if (referringUser && increase > 0) {
             const bonus = referringUser.role === 'crypto' ? increase * 0.0005 : increase * 0.05;
             referringUser.referralsBalance += bonus;
-            referringUser.weeklyEarnings += bonus;
+            referringUser.weeklyEarnings = (referringUser.weeklyEarnings || 0) + bonus;
             await referringUser.save();
             console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
         }
