@@ -402,8 +402,9 @@ router.get('/top-earners', async (req, res) => {
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
       const topEarners = await User.find().sort({ weeklyReferrals: -1 }).limit(10);
+      const fullListEarners = await User.find().sort({ weeklyReferrals: -1 });
 
-      res.json(topEarners);
+      res.json({topEarners, fullListEarners});
   } catch (err) {
       console.error('Error fetching top earners:', err);
       res.status(500).json({ error: 'Internal server error' });
@@ -422,8 +423,9 @@ router.get('/top-ad-clickers', async (req, res) => {
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
       const topAdClickers = await User.find().sort({ adsClicked: -1 }).limit(10);
+      const fullListClickers = await User.find().sort({ adsClicked: -1 });
 
-      res.json(topAdClickers);
+      res.json({topAdClickers, fullListClickers});
   } catch (err) {
       console.error('Error fetching top ad clickers:', err);
       res.status(500).json({ error: 'Internal server error' });
