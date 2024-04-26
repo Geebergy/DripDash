@@ -127,6 +127,9 @@ async function watchReferralsBalanceForAllUsers() {
 // Example usage: Watch referralsBalance for all users
 watchReferralsBalanceForAllUsers();
 
+
+
+
 // ...
 // fetch prizes and winners
 const prizesAndWinnersSchema = new mongoose.Schema({
@@ -914,6 +917,34 @@ const dailyTaskSchema = new mongoose.Schema({
 
 const DailyTask = mongoose.model('dailytasks', dailyTaskSchema);
 
+// save tasks
+
+// Save daily task
+router.post('/saveTasks', async (req, res) => {
+  try {
+    const { taskID } = req.body;
+
+    // Check if task with the same ID already exists
+    let existingTask = await DailyTask.findOne({ taskID });
+
+    if (existingTask) {
+      // Update existing task
+      existingTask = await DailyTask.findOneAndUpdate({ taskID }, req.body, { new: true });
+      return res.json({ message: 'Task updated successfully', task: existingTask });
+    }
+    else{
+      const newTask = new DailyTask(req.body);
+      await newTask.save();
+      res.json({ message: 'Task created successfully', task: newTask });
+    }
+
+    // Create new task
+    
+  } catch (error) {
+    console.error('Error saving task:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
 // Your API endpoint to fetch and set the task
 router.get('/tasks/:taskID', async (request, response) => {
   try {
