@@ -785,7 +785,7 @@ router.post("/creditReferrer", async (request, response) => {
        await User.updateOne(
         { userId: userId },
         {
-          $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd}
+          $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd, dailyDropBalance: 2000}
         }
       );
 
@@ -1366,7 +1366,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
         await User.updateOne(
           { userId: currentUserReferrerId },
           {
-            $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd }
+            $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd, dailyDropBalance: 15 }
           }
         );
       }
