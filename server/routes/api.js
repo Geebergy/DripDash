@@ -83,17 +83,27 @@ async function watchReferralsBalanceForAllUsers() {
       const userID = change.documentKey._id;
       // Fetch the full document to get referralsBalance
       const user = await User.findById(userID);
-      const { userId, referralsBalance } = user;
+      if (!user) {
+        console.error(`User with ID ${userID} not found.`);
+        return;
+      }
+
+      const { userId, referralsBalance, referredBy, role, previousReferralsBalance } = user;
+
       console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
         
-
       // Fetch the user details of the user who referred this user
-      const referringUser = await User.findOne({ userId: user.referredBy });
+      const referringUser = await User.findOne({ userId: referredBy });
+
+      if (!referringUser) {
+        console.error(`Referring user with ID ${referredBy} not found.`);
+        return;
+      }
 
       // Calculate increase in referrals balance
-      const increase = referralsBalance - (user.previousReferralsBalance || 0);
+      const increase = referralsBalance - (previousReferralsBalance || 0);
 
-      const userRole = user.role;
+      const userRole = role;
       // Update referring user's referrals balance if increase is positive
       // Update referring user's referrals balance based on userRole
       if (userRole === 'crypto') {
@@ -347,17 +357,20 @@ const selectRaffleWinner = async () => {
 // Schedule task to run at 00:00 on Monday (start of the week)
 cron.schedule('0 0 * * 0', async () => {
   try {
+      console.log('started update')
       // Reset weeklyEarnings and adsClicked for all users
       await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0, slots: 0 } });
 
-
+      console.log('users updated')
       // Fetch top earners and ad clickers
       const topEarners = await User.find().sort({ weeklyReferrals: -1 }).limit(1);
       const topAdClickers = await User.find().sort({ adsClicked: -1 }).limit(1);
 
+      console.log('winners found')
     // Save the top earners and ad clickers to the prizesandwinners collection
       await Prize.findOneAndUpdate({ category: 'topEarner' }, { $set: { userId: topEarners[0].userId, prize: 0 } }, { upsert: true });
       await Prize.findOneAndUpdate({ category: 'topAdClicker' }, { $set: { userId: topAdClickers[0].userId, prize: 0 } }, { upsert: true });
+      console.log('winners assigned')
       selectRaffleWinner();
 
 
