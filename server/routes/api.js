@@ -7,7 +7,8 @@ const { MongoClient } = require('mongodb');
 const cron = require('node-cron');
 const axios = require('axios');
 
-const uri = "mongodb+srv://TheGilo:OnlyOneGilo@cluster0.pvwjh.mongodb.net/userData?retryWrites=true&w=majority&appName=DripDashCluster";
+// const uri = "mongodb+srv://TheGilo:OnlyOneGilo@cluster0.pvwjh.mongodb.net/userData?retryWrites=true&w=majority&appName=DripDashCluster";
+const uri = "mongodb+srv://OneGilo:OnlyOneGilo@dripdash.f23pb.mongodb.net/userData?retryWrites=true&w=majority&appName=DripDash"
 
 async function connectToMongoDB() {
   try {
