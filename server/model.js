@@ -34,8 +34,7 @@ const schema = new mongoose.Schema({
     slots: Number,
     createdAt: {
       type: Date,
-      default: Date.now // Automatically set to the current date and time when a document is created
-    },
+   },
     previousReferralsBalance: { type: Number, default: 0 },
   });
 
