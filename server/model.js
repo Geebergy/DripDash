@@ -32,6 +32,10 @@ const schema = new mongoose.Schema({
     weeklyEarnings: Number,
     isAnonymous: Boolean,
     slots: Number,
+    createdAt: {
+      type: Date,
+      default: Date.now // Automatically set to the current date and time when a document is created
+    },
     previousReferralsBalance: { type: Number, default: 0 },
   });
 
