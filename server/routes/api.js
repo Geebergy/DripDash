@@ -382,10 +382,13 @@ cron.schedule('0 0 * * 0', async () => {
 
 
 // update access
+const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60; // 24 hours * 60 minutes * 60 seconds
+
 // Inside your Node.js backend
-router.get('/feature-access', async (req, res) => {
+router.get('/featureAccess', async (req, res) => {
   try {
-    const user = await User.findById(req.userID); // Assuming you have userId available in req
+    const { userID } = req.query;
+    const user = await User.findOne({userId: userID}); // Assuming you have userId available in req
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -393,7 +396,6 @@ router.get('/feature-access', async (req, res) => {
     const timeSinceCreation = currentTime - user.createdAt;
     const timeLeftInSeconds = Math.max(0, TWENTY_FOUR_HOURS_IN_SECONDS - Math.floor(timeSinceCreation / 1000));
     const hasAccess = timeLeftInSeconds > 0;
-    console.log(hasAccess, timeLeftInSeconds, user);
     
     res.status(200).json({ hasAccess, timeLeftInSeconds });
   } catch (err) {
