@@ -381,6 +381,26 @@ cron.schedule('0 0 * * 0', async () => {
 });
 
 
+// update access
+// Inside your Node.js backend
+router.get('/feature-access', async (req, res) => {
+  try {
+    const user = await User.findById(req.userID); // Assuming you have userId available in req
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const currentTime = new Date();
+    const timeSinceCreation = currentTime - user.createdAt;
+    const timeLeftInSeconds = Math.max(0, TWENTY_FOUR_HOURS_IN_SECONDS - Math.floor(timeSinceCreation / 1000));
+    const hasAccess = timeLeftInSeconds > 0;
+    console.log(hasAccess, timeLeftInSeconds, user);
+    
+    res.status(200).json({ hasAccess, timeLeftInSeconds });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // update anonymity
 // Assuming you have a User model and express.Router() already set up
 
