@@ -82,24 +82,26 @@ async function watchReferralsBalanceForAllUsers() {
   changeStream.on('change', async change => {
     if (change.operationType === 'update' && change.documentKey._id) { // Check if fullDocument exists
       const userID = change.documentKey._id;
-      // Fetch the full document to get referralsBalance
-      const user = await User.findById(userID);
-      if (!user) {
-        console.error(`User with ID ${userID} not found.`);
-        return;
-      }
+          // Fetch the full document to get referralsBalance
+    const user = await User.findById(userID);
+    if (!user) {
+        throw new Error(`User with ID ${userID} not found.`);
+    }
 
-      const { userId, referralsBalance, referredBy, role, previousReferralsBalance } = user;
+    const { userId, referralsBalance, referredBy, role, previousReferralsBalance } = user;
 
-      console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
-        
-      // Fetch the user details of the user who referred this user
-      const referringUser = await User.findOne({ userId: referredBy });
+    if (!userId || !referralsBalance || !referredBy || !role || !previousReferralsBalance) {
+        throw new Error('Required user data is missing or invalid.');
+    }
 
-      if (!referringUser) {
-        console.error(`Referring user with ID ${referredBy} not found.`);
-        return;
-      }
+    console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
+
+    // Fetch the user details of the user who referred this user
+    const referringUser = await User.findOne({ userId: referredBy });
+
+    if (!referringUser) {
+        throw new Error(`Referring user with ID ${referredBy} not found.`);
+    }
 
       // Calculate increase in referrals balance
       const increase = referralsBalance - (previousReferralsBalance || 0);
@@ -367,7 +369,6 @@ cron.schedule('0 0 * * 0', async () => {
       const topEarners = await User.find().sort({ weeklyReferrals: -1 }).limit(1);
       const topAdClickers = await User.find().sort({ adsClicked: -1 }).limit(1);
 
-      console.log('winners found')
     // Save the top earners and ad clickers to the prizesandwinners collection
       await Prize.findOneAndUpdate({ category: 'topEarner' }, { $set: { userId: topEarners[0].userId, prize: 0 } }, { upsert: true });
       await Prize.findOneAndUpdate({ category: 'topAdClicker' }, { $set: { userId: topAdClickers[0].userId, prize: 0 } }, { upsert: true });
