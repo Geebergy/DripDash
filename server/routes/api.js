@@ -774,9 +774,7 @@ router.post("/updateOnClick", async (request, response) => {
       if(doesDataExist){
           await User.updateOne(
             { userId: userId },
-            { $set: { adRevenue,
-              },
-              $inc: { adsClicked: 1, weeklyEarnings: adRevenue } }
+            { $inc: {adRevenue: adRevenue, adsClicked: 1, weeklyEarnings: adRevenue } }
           );
         
     
