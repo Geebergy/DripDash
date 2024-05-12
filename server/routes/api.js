@@ -94,7 +94,6 @@ async function watchReferralsBalanceForAllUsers() {
         throw new Error('Required user data is missing or invalid.');
     }
 
-    console.log(`Referrals balance updated for user ${userId}: ${referralsBalance}`);
 
     // Fetch the user details of the user who referred this user
     const referringUser = await User.findOne({ userId: referredBy });
@@ -116,7 +115,6 @@ async function watchReferralsBalanceForAllUsers() {
             referringUser.referralsBalance += bonus;
             referringUser.weeklyEarnings = (referringUser.weeklyEarnings || 0) + bonus;
             await referringUser.save();
-            console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
         }
       } else {
         // Naira account crediting
@@ -125,7 +123,6 @@ async function watchReferralsBalanceForAllUsers() {
             referringUser.referralsBalance += bonus;
             referringUser.weeklyEarnings = (referringUser.weeklyEarnings || 0) + bonus;
             await referringUser.save();
-            console.log(`Referring user ${referringUser.userId} received a bonus of ${bonus}`);
         }
       }
 
