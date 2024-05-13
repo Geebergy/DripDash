@@ -761,7 +761,6 @@ router.post("/updateOnDebit", async (request, response) => {
 router.post("/updateOnClick", async (request, response) => {
   const userDetails = new User(request.body);
   const userId = userDetails.userId;
-  const adRevenue = userDetails.adRevenue;
  
   try {
     const doesDataExist = await User.findOne({ userId: userId});
@@ -769,9 +768,11 @@ router.post("/updateOnClick", async (request, response) => {
    
       // Example 2: Incrementing referredUsers field
       if(doesDataExist){
+        const userRole = doesDataExist.role;
+        const adReward = userRole === 'crypto' ? 0.05 : 1.0;
           await User.updateOne(
             { userId: userId },
-            { $inc: {adRevenue: adRevenue, adsClicked: 1, weeklyEarnings: adRevenue } }
+            { $inc: {adRevenue: adReward, adsClicked: 1, weeklyEarnings: adReward } }
           );
         
     
