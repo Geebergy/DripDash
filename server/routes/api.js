@@ -98,9 +98,12 @@ async function watchReferralsBalanceForAllUsers() {
     // Fetch the user details of the user who referred this user
     const referringUser = await User.findOne({ userId: referredBy });
 
-    if (!referringUser) {
+    if(referringUser !== "none"){
+      if (!referringUser) {
         throw new Error(`Referring user with ID ${referredBy} not found.`);
+      }
     }
+    
 
       // Calculate increase in referrals balance
       const increase = referralsBalance - (previousReferralsBalance || 0);
