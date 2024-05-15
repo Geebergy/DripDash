@@ -91,18 +91,19 @@ async function watchReferralsBalanceForAllUsers() {
     const { userId, referralsBalance, referredBy, role, previousReferralsBalance } = user;
 
     if (!userId || !referralsBalance || !referredBy || !role || !previousReferralsBalance) {
-        throw new Error('Required user data is missing or invalid.');
+        console.log('Required user data is missing or invalid.');
     }
 
 
     // Fetch the user details of the user who referred this user
     const referringUser = await User.findOne({ userId: referredBy });
 
-    if(referringUser !== "none"){
       if (!referringUser) {
-        throw new Error(`Referring user with ID ${referredBy} not found.`);
+        if(referringUser !== "none"){
+         console.log(`Referring user with ID ${referredBy} not found.`);
+        }
       }
-    }
+    
     
 
       // Calculate increase in referrals balance
