@@ -765,6 +765,7 @@ router.post("/updateOnDebit", async (request, response) => {
 router.post("/updateOnClick", async (request, response) => {
   const userDetails = new User(request.body);
   const userId = userDetails.userId;
+  const newAdBalance = userDetails.newAdBalance;
  
   try {
     const doesDataExist = await User.findOne({ userId: userId});
@@ -776,7 +777,8 @@ router.post("/updateOnClick", async (request, response) => {
         const adReward = userRole === 'crypto' ? 0.05 : 1.0;
           await User.updateOne(
             { userId: userId },
-            { $inc: {adRevenue: adReward, adsClicked: 1, weeklyEarnings: adReward } }
+            { $set: {adRevenue: newAdBalance},
+              $inc: {adsClicked: 1, weeklyEarnings: adReward } }
           );
         
     
