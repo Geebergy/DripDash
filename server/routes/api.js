@@ -731,6 +731,7 @@ router.post("/updateInfoAfterPay", async (request, response) => {
     // Update personal user info
     const isUserActive = userInfo.isUserActive;
     const afterPayPrize = !isUserActive ? 7500 : 0;
+    const addedBonusBalance = referralsBalance ? referralsBalance : 0;
 
     await User.updateOne(
       { userId: userId },
@@ -738,13 +739,13 @@ router.post("/updateInfoAfterPay", async (request, response) => {
         $set: {
           isUserActive: true,
           referralRedeemed: true,
-          referralsBalance,
           hasPaid: true
         },
         $inc: {
           deposit: 3000,
+          referralsBalance: addedBonusBalance,
           dailyDropBalance: afterPayPrize,
-          weeklyEarnings: referralsBalance
+          weeklyEarnings: addedBonusBalance
         }
       }
     );
@@ -1233,12 +1234,16 @@ router.post('/checkTaskInCompletedTasks', async (req, res) => {
 // COMPLETE TASK
 // Define a route to mark a task as completed
 router.post('/markTaskAsCompleted', async (req, res) => {
-  const { userUid, taskID } = req.body;
+  const { userUid, taskID, dailyDropBalance, weeklyEarnings, accountLimit } = req.body;
+  const adjustedDD = dailyDropBalance ? dailyDropBalance : 0;
+  const adjustedWE = weeklyEarnings ? weeklyEarnings : 0;
+  const adjustedAL = accountLimit ? accountLimit : 0;
 
   try {
     const updatedUser = await User.findOneAndUpdate(
       { userId: userUid },
-      { $addToSet: { completedTasks: taskID } },
+      { $addToSet: { completedTasks: taskID },
+        $inc: {dailyDropBalance: adjustedDD, weeklyEarnings: adjustedWE, accountLimit: adjustedAL} },
       { new: true }
     );
 
