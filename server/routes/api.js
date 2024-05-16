@@ -673,45 +673,88 @@ router.post("/updateBalance", async (request, response) => {
 // UPDATE INFO AFTER PAY
 // update user data
 router.post("/updateInfoAfterPay", async (request, response) => {
-  const userDetails = new User(request.body);
-  const userId = userDetails.userId;
-  const deposit = userDetails.deposit;
-  const dailyDropBalance = userDetails.dailyDropBalance;
-  const referralsBalance = userDetails.referralsBalance;
-  const addAmount = userDetails.addAmount;
-  const amountToAdd = userDetails.amountToAdd;
- 
   try {
-    const doesDataExist = await User.findOne({ userId: userId});
-    try {
-  
-        if(doesDataExist){
-          await User.updateOne(
-            { userId: userId },
-            { $set: { deposit,
-              isUserActive: true,
-              dailyDropBalance,
-              referralRedeemed: true,
-              referralsBalance,
-              hasPaid: true },
-              $inc: { weeklyEarnings: referralsBalance } }
-          );
-          response.send({"status": "successful", "referrerData" : doesDataExist})
-      }
-      else{
-        response.send({"status": "failed",})
-      }
-     
-      
-      
-    } catch (error) {
-      response.send(error);
+    const userDetails = new User(request.body);
+
+    // Validation of request body data should be done here
+
+    const userId = userDetails.userId;
+    const userInfo = await User.findOne({ userId: userId });
+
+    if (!userInfo) {
+      return response.status(404).send({ status: "failed", message: "User not found" });
     }
-    
+
+    const referredByUserID = userInfo.referredBy;
+    const referralRedeemed = userInfo.referralRedeemed;
+    const referralsBalance = userDetails.referralsBalance;
+
+    // Update referrer data
+    if (referredByUserID !== 'none' && !referralRedeemed) {
+      const referredByUser = await User.findOne({ userId: referredByUserID });
+
+      if (!referredByUser) {
+        return response.status(404).send({ status: "failed", message: "Referrer not found" });
+      }
+
+      const referredByUserRole = referredByUser.role;
+      const referredByUserTotalReferrals = referredByUser.totalReferrals;
+
+      let commissionRate = 0.17; // Default commission rate for tier 0
+      if (referredByUserTotalReferrals !== null) {
+        if (referredByUserTotalReferrals >= 9) commissionRate = 0.3;
+        else if (referredByUserTotalReferrals >= 6) commissionRate = 0.25;
+        else if (referredByUserTotalReferrals >= 3) commissionRate = 0.20;
+      }
+
+      const commission = commissionRate * (referredByUserRole === 'crypto' ? 2 : 3000);
+      const revenueAdd = referredByUserRole === 'crypto' ? 2 : 1333;
+
+      await User.updateOne(
+        { userId: referredByUserID },
+        {
+          $inc: { 
+            referralsCount: 1, 
+            totalReferrals: 1, 
+            referralsBalance: commission, 
+            referredUsers: -1, 
+            weeklyEarnings: commission, 
+            reserveAccountLimit: revenueAdd, 
+            dailyDropBalance: 2000
+          }
+        }
+      );
+
+      response.send({ status: "successful", referrerData: referredByUser });
+    }
+
+    // Update personal user info
+    const isUserActive = userInfo.isUserActive;
+    const afterPayPrize = !isUserActive ? 7500 : 0;
+
+    await User.updateOne(
+      { userId: userId },
+      {
+        $set: {
+          isUserActive: true,
+          referralRedeemed: true,
+          referralsBalance,
+          hasPaid: true
+        },
+        $inc: {
+          deposit: 3000,
+          dailyDropBalance: afterPayPrize,
+          weeklyEarnings: referralsBalance
+        }
+      }
+    );
+
+    response.send({ status: "successful", referrerData: userInfo });
   } catch (error) {
-    response.status(500).send(error);
+    response.status(500).send({ status: "error", message: error.message });
   }
 });
+
 
 // UPDATE BALANCE AFTER TASK
 
@@ -804,39 +847,6 @@ router.post("/creditReferrer", async (request, response) => {
   const balance = userDetails.balance;
   const referralsBalance = userDetails.referralsBalance;
 
-  try {
-    const referredByUser = await User.findOne({ userId: userId });
-    const referredByUserRole = referredByUser ? referredByUser.role : null;
-    const referredByUserTotalReferrals = referredByUser ? referredByUser.totalReferrals : null;
-
-    // Example 2: Incrementing referredUsers field
-    if (referredByUser) {
-        let commissionRate = 0.17; // Default commission rate for tier 0
-        if (referredByUserTotalReferrals !== null) {
-        if (referredByUserTotalReferrals >= 9) commissionRate = 0.3;
-        else if (referredByUserTotalReferrals >= 6) commissionRate = 0.25;
-        else if (referredByUserTotalReferrals >= 3) commissionRate = 0.20;
-      }
-      const commission = commissionRate * (referredByUserRole === 'crypto' ? 2 : 3000);
-  
-      const revenueAdd = referredByUserRole === 'crypto' ? 2 : 1333;
-
-       // Update referrer's commission
-       await User.updateOne(
-        { userId: userId },
-        {
-          $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd, dailyDropBalance: 2000}
-        }
-      );
-
-      response.send({ status: "successful", referrerData: referredByUser });
-
-    } else {
-      response.send({ status: "failed" });
-    }
-  } catch (error) {
-    response.status(500).send(error);
-  }
 });
 
 // end of update user data
