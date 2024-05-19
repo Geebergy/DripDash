@@ -93,18 +93,17 @@ async function watchReferralsBalanceForAllUsers() {
     if (!userId || !referralsBalance || !referredBy || !role || !previousReferralsBalance) {
         console.log('Required user data is missing or invalid.');
     }
+    else{
+      // Fetch the user details of the user who referred this user
+       const referringUser = await User.findOne({ userId: referredBy });
 
-
-    // Fetch the user details of the user who referred this user
-    const referringUser = await User.findOne({ userId: referredBy });
-
-      if (!referringUser) {
-        if(referringUser !== "none"){
-         console.log(`Referring user with ID ${referredBy} not found.`);
-        }
-      }
-    
-    
+       if (!referringUser) {
+         if(referringUser === "none"){
+          console.log(`Referring user with ID ${referredBy} not found.`);
+         }
+         else{
+            // code if there is a valid referring user's id
+                
 
       // Calculate increase in referrals balance
       const increase = referralsBalance - (previousReferralsBalance || 0);
@@ -134,6 +133,10 @@ async function watchReferralsBalanceForAllUsers() {
       // Update user's previousReferralsBalance
       user.previousReferralsBalance = referralsBalance;
       await User.findOneAndUpdate({ userId: userId }, { previousReferralsBalance: referralsBalance });
+         }
+       }
+    }
+
     }
   });
 }
