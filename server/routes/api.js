@@ -780,16 +780,18 @@ router.post("/updateOnDebit", async (request, response) => {
     const doesDataExist = await User.findOne({ userId: userId});
     try {
    
-  
+      const reduceAdRevAmount = adRevenue ? adRevenue : 0;
+      const reduceRefBalAmount = referralsBalance ? referralsBalance : 0;
+      const reduceDDAmount = dailyDropBalance ? dailyDropBalance : 0;
+      const reduceAccLimAmount = accountLimit ? accountLimit : 0;
+      const newWRE = referralsBalance ? referralsBalance : 0;
       // Example 2: Incrementing referredUsers field
+      console.log(reduceAdRevAmount, reduceRefBalAmount, reduceDDAmount, reduceAccLimAmount)
       if(doesDataExist){
           await User.updateOne(
             { userId: userId },
-            { $set: { adRevenue,
-              referralsBalance,
-              dailyDropBalance,
-              accountLimit},
-              $inc: { weeklyEarnings: referralsBalance } }
+            {
+              $inc: {adRevenue: -reduceAdRevAmount, referralsBalance: -reduceRefBalAmount , dailyDropBalance: -reduceDDAmount, accountLimit: -reduceAccLimAmount, weeklyEarnings: newWRE } }
           );
         
     
@@ -800,6 +802,7 @@ router.post("/updateOnDebit", async (request, response) => {
       }
       
     } catch (error) {
+      console.log(error);
       response.send(error);
     }
     
