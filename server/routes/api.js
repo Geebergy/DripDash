@@ -638,6 +638,8 @@ router.post("/updateBalance", async (request, response) => {
   const lastLogin = userDetails.lastLogin;
   const firstLogin = userDetails.firstLogin;
   const weeklyEarnings = userDetails.weeklyEarnings;
+
+  const cleanWE = weeklyEarnings ? weeklyEarnings : 0;
  
   try {
     const doesDataExist = await User.findOne({ userId: userId});
@@ -654,7 +656,7 @@ router.post("/updateBalance", async (request, response) => {
           accountLimit,
           lastLogin,
           firstLogin },
-          $inc: { weeklyEarnings: weeklyEarnings}  },
+          $inc: { weeklyEarnings: cleanWE}  },
            
         );
     
