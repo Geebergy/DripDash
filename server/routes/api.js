@@ -1165,16 +1165,8 @@ router.post('/checkTaskIsConfirmed', async (req, res) => {
 
     if (pendingTask) {
       if (pendingTask.confirmed) {
-        // Move task to completed array
 
-        // Assume you have a "users" collection with a schema similar to your previous examples
-        const user = await User.findOneAndUpdate(
-          { userId: userID },
-          { $push: { completedTasks: taskID } },
-          { new: true }
-        );
-
-        res.json({ isTaskInPendingTasks: true, isConfirmed: true, user });
+        res.json({ isTaskInPendingTasks: true, isConfirmed: true});
 
       } else {
         res.json({ isTaskInPendingTasks: true, isConfirmed: false });
@@ -1279,10 +1271,12 @@ const updateBonus = async (userId, reward, taskID) => {
           referralsBalance: reward,
           weeklyEarnings: reward // Increment by 1 or change as needed
         },
+        $push: { completedTasks: taskID }
       }
     );
 
     await Task.deleteOne({ userId, taskId: taskID });
+
          
   }
   // Simulate a response for testing
@@ -1526,7 +1520,7 @@ router.post('/acceptTask', async (req, res) => {
 });
 
 // Task decline endpoint
-router.post('/declineTask/', async (req, res) => {
+router.post('/declineTask', async (req, res) => {
   const {taskId, description, userId} = req.body;
 
   try {
