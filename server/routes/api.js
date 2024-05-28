@@ -358,26 +358,77 @@ const selectRaffleWinner = async () => {
   }
 };
 
+// recalculate use click revenue
 
+const recalculateAdRevenue = async () => {
+  try {
+    const users = await User.find();
+
+    for (let user of users) {
+      let maxGuarantee;
+      if (user.totalReferrals >= 9) {
+        maxGuarantee = user.role === 'crypto' ? 15 : 6000; 
+      } else if (user.totalReferrals >= 6) {
+        maxGuarantee = user.role === 'crypto' ? 15 : 5000;
+      } else if (user.totalReferrals >= 3) {
+        maxGuarantee = user.role === 'crypto' ? 10 : 4000;
+      } else {
+        maxGuarantee = user.role === 'crypto' ? 5 : 3000;
+      }
+
+      if (user.adRevenue > maxGuarantee) {
+        const newAdRevenue = maxGuarantee + (user.adRevenue - maxGuarantee) / 10;
+        user.adRevenue = newAdRevenue;
+      } else {
+        user.adRevenue = user.adRevenue; // No change needed if adRevenue is not more than maxGuarantee
+      }
+
+      await user.save();
+    }
+
+    console.log('Ad revenue recalculated for all users.');
+  } catch (error) {
+    console.error('Error recalculating ad revenue:', error);
+  }
+};
+
+// Schedule the task to run on the 28th of each month at 00:00
+cron.schedule('50 23 27 * *', recalculateAdRevenue);
+
+// reset monthly withdraw status
+const resetMonthlyWithdraw = async () => {
+  try {
+    await User.updateMany({}, { monthlyWithdraw: false });
+    console.log('Monthly withdraw status reset for all users.');
+  } catch (error) {
+    console.error('Error resetting monthly withdraw status:', error);
+  }
+};
+
+// Schedule the task to run on the 1st of each month at 00:00
+cron.schedule('0 0 1 * *', resetMonthlyWithdraw);
 
 // reset and set leadderboard
 // Schedule task to run at 00:00 on Monday (start of the week)
 cron.schedule('0 0 * * 0', async () => {
   try {
       console.log('started update')
-      // Reset weeklyEarnings and adsClicked for all users
-      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0, slots: 0 } });
 
       console.log('users updated')
       // Fetch top earners and ad clickers
       const topEarners = await User.find().sort({ weeklyReferrals: -1 }).limit(1);
       const topAdClickers = await User.find().sort({ adsClicked: -1 }).limit(1);
 
+
     // Save the top earners and ad clickers to the prizesandwinners collection
       await Prize.findOneAndUpdate({ category: 'topEarner' }, { $set: { userId: topEarners[0].userId, prize: 0 } }, { upsert: true });
       await Prize.findOneAndUpdate({ category: 'topAdClicker' }, { $set: { userId: topAdClickers[0].userId, prize: 0 } }, { upsert: true });
+
       console.log('winners assigned')
       selectRaffleWinner();
+
+      // Reset weeklyEarnings and adsClicked for all users
+      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0, slots: 0 } });
 
 
       console.log('Weekly reset completed successfully.');
@@ -796,6 +847,14 @@ router.post("/updateOnDebit", async (request, response) => {
               $inc: {adRevenue: -reduceAdRevAmount, referralsBalance: -reduceRefBalAmount , dailyDropBalance: -reduceDDAmount, accountLimit: -reduceAccLimAmount, weeklyEarnings: newWRE } }
           );
         
+          if(reduceAdRevAmount !== 0){
+            await User.updateOne(
+              { userId: userId },
+              {
+                $set: { monthlyWithdraw: true } 
+              }
+            );
+          }
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
       }
