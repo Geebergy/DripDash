@@ -532,113 +532,105 @@ router.get('/top-ad-clickers', async (req, res) => {
 
 
 // update account limit
+// update account limit
 router.post('/updateAccountLimit', async (req, res) => {
   const userId = req.body.userId;
 
   try {
     const userDoc = await User.findOne({ userId: userId });
 
+    if (!userDoc) {
+      console.error('User data not found.');
+      res.status(400).json({ error: 'User data not found.' });
+      return;  // Ensure the function exits if the user data is not found
+    }
+
     // Get the referredBy user's ID from the current user's document
     const referredByUserId = userDoc.referredBy;
 
     if (referredByUserId !== 'none') {
-      try {
-        // Fetch the referredBy user's document
-        const referredByUserDoc = await User.findOne({ userId: referredByUserId });
+      const referredByUserDoc = await User.findOne({ userId: referredByUserId });
 
-        if (!referredByUserDoc) {
-          throw new Error('ReferredBy user data not found.');
-        }
-
-        // Define account limit, activity, and referral count from the referredBy user
-        const currentAccountLimit = referredByUserDoc.accountLimit;
-        const isAccountActive = referredByUserDoc.isUserActive;
-        const referralsCount = referredByUserDoc.referralsCount;
-        const hasUserPaid = referredByUserDoc.hasPaid;
-
-        const amount = referredByUserDoc.reserveAccountLimit;
-
-        // Check if the user has three referrals and isAccountActive
-        if (referralsCount >= 3 && isAccountActive && hasUserPaid) {
-          await User.updateOne(
-            { userId: referredByUserId },
-            { $set: { accountLimit: parseFloat(currentAccountLimit) + parseFloat(amount), referralsCount: 0, hasPaid: false } }
-          );
-        }
-
-        // Fetch the referredBy user's balance after potential update
-        const updatedAccountLimitDoc = await User.findOne({ userId: referredByUserId });
-
-        try {
-          // Fetch the user's document
-          const currentUserDoc = await User.findOne({ userId: userId });
-  
-          if (!currentUserDoc) {
-            throw new Error('User data not found.');
-          }
-  
-          const currentUserAccountLimit = currentUserDoc.accountLimit;
-          const isCurrentAccountActive = currentUserDoc.isUserActive;
-          const currentUserReferralsCount = currentUserDoc.referralsCount;
-          const currentUserPaid = currentUserDoc.hasPaid;
-  
-          const amount = currentUserDoc.reserveAccountLimit;
-  
-          // Check if the user has three referrals and isCurrentAccountActive
-          if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
-            await User.updateOne(
-              { userId: userId },
-              { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(amount), referralsCount: 0, hasPaid: false } }
-            );
-          }
-  
-        } catch (error) {
-          console.error(error);
-          res.status(500).json({ error: 'Internal Server Error' });
-        }
-
-        if (!updatedAccountLimitDoc) {
-          throw new Error('ReferredBy user data not found after update.');
-        }
-
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+      if (!referredByUserDoc) {
+        console.error('ReferredBy user data not found.');
+        res.status(400).json({ error: 'ReferredBy user data not found.' });
+        return;  // Ensure the function exits if the referredBy user data is not found
       }
+
+      // Define account limit, activity, and referral count from the referredBy user
+      const currentAccountLimit = referredByUserDoc.accountLimit;
+      const isAccountActive = referredByUserDoc.isUserActive;
+      const referralsCount = referredByUserDoc.referralsCount;
+      const hasUserPaid = referredByUserDoc.hasPaid;
+      const amount = referredByUserDoc.reserveAccountLimit;
+
+      // Check if the user has three referrals and isAccountActive
+      if (referralsCount >= 3 && isAccountActive && hasUserPaid) {
+        await User.updateOne(
+          { userId: referredByUserId },
+          { $set: { accountLimit: parseFloat(currentAccountLimit) + parseFloat(amount), referralsCount: 0, hasPaid: false } }
+        );
+      }
+
+      // Fetch the referredBy user's balance after potential update
+      const updatedAccountLimitDoc = await User.findOne({ userId: referredByUserId });
+
+      if (!updatedAccountLimitDoc) {
+        console.error('ReferredBy user data not found after update.');
+        res.status(400).json({ error: 'ReferredBy user data not found after update.' });
+        return;  // Ensure the function exits if the referredBy user data is not found after update
+      }
+
+      const currentUserDoc = await User.findOne({ userId: userId });
+
+      if (!currentUserDoc) {
+        console.error('User data not found.');
+        res.status(400).json({ error: 'User data not found.' });
+        return;  // Ensure the function exits if the current user data is not found
+      }
+
+      const currentUserAccountLimit = currentUserDoc.accountLimit;
+      const isCurrentAccountActive = currentUserDoc.isUserActive;
+      const currentUserReferralsCount = currentUserDoc.referralsCount;
+      const currentUserPaid = currentUserDoc.hasPaid;
+      const currentUserAmount = currentUserDoc.reserveAccountLimit;
+
+      // Check if the user has three referrals and isCurrentAccountActive
+      if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
+        await User.updateOne(
+          { userId: userId },
+          { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(currentUserAmount), referralsCount: 0, hasPaid: false } }
+        );
+      }
+
     } else {
-      try {
-        // Fetch the user's document
-        const currentUserDoc = await User.findOne({ userId: userId });
+      const currentUserDoc = await User.findOne({ userId: userId });
 
-        if (!currentUserDoc) {
-          throw new Error('User data not found.');
-        }
+      if (!currentUserDoc) {
+        console.error('User data not found.');
+        res.status(400).json({ error: 'User data not found.' });
+        return;  // Ensure the function exits if the current user data is not found
+      }
 
-        const currentUserAccountLimit = currentUserDoc.accountLimit;
-        const isCurrentAccountActive = currentUserDoc.isUserActive;
-        const currentUserReferralsCount = currentUserDoc.referralsCount;
-        const currentUserPaid = currentUserDoc.hasPaid;
+      const currentUserAccountLimit = currentUserDoc.accountLimit;
+      const isCurrentAccountActive = currentUserDoc.isUserActive;
+      const currentUserReferralsCount = currentUserDoc.referralsCount;
+      const currentUserPaid = currentUserDoc.hasPaid;
+      const currentUserAmount = currentUserDoc.reserveAccountLimit;
 
-        const amount = currentUserDoc.reserveAccountLimit;
-
-        // Check if the user has three referrals and isCurrentAccountActive
-        if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
-          await User.updateOne(
-            { userId: userId },
-            { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(amount), referralsCount: 0, hasPaid: false } }
-          );
-        }
-
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+      // Check if the user has three referrals and isCurrentAccountActive
+      if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
+        await User.updateOne(
+          { userId: userId },
+          { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(currentUserAmount), referralsCount: 0, hasPaid: false } }
+        );
       }
     }
 
     res.status(200).json({ message: 'Account limit updated successfully' });
 
   } catch (error) {
-    console.error(error);
+    console.error('Unexpected error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
