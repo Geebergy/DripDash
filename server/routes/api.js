@@ -568,7 +568,7 @@ router.post('/updateAccountLimit', async (req, res) => {
       if (referralsCount >= 3 && isAccountActive && hasUserPaid) {
         await User.updateOne(
           { userId: referredByUserId },
-          { $set: { accountLimit: parseFloat(currentAccountLimit) + parseFloat(amount), referralsCount: 0, hasPaid: false } }
+          { $set: { accountLimit: parseFloat(currentAccountLimit) + parseFloat(amount), referralsCount: 0, hasPaid: false, reserveAccountLimit: 0 } }
         );
       }
 
@@ -599,7 +599,7 @@ router.post('/updateAccountLimit', async (req, res) => {
       if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
         await User.updateOne(
           { userId: userId },
-          { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(currentUserAmount), referralsCount: 0, hasPaid: false } }
+          { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(currentUserAmount), referralsCount: 0, hasPaid: false, reserveAccountLimit: 0 } }
         );
       }
 
@@ -622,7 +622,7 @@ router.post('/updateAccountLimit', async (req, res) => {
       if (currentUserReferralsCount >= 3 && isCurrentAccountActive && currentUserPaid) {
         await User.updateOne(
           { userId: userId },
-          { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(currentUserAmount), referralsCount: 0, hasPaid: false } }
+          { $set: { accountLimit: parseFloat(currentUserAccountLimit) + parseFloat(currentUserAmount), referralsCount: 0, hasPaid: false, reserveAccountLimit: 0 } }
         );
       }
     }
