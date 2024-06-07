@@ -868,12 +868,13 @@ router.post("/updateOnDebit", async (request, response) => {
 router.post("/updateOnClick", async (request, response) => {
   const userDetails = new User(request.body);
   const userId = userDetails.userId;
+  const doesDataExist = await User.findOne({ userId: userId});
  
-  try {
-    const doesDataExist = await User.findOne({ userId: userId});
+
     try {
 
       const userRole = doesDataExist.role;
+      const isUserActive = doesDataExist.isUserActive;
       const user = await User.findOne({userId: userId}); // Assuming you have userId available in req
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -884,7 +885,6 @@ router.post("/updateOnClick", async (request, response) => {
       const hasAccess = timeLeftInSeconds > 0;
 
       const adReward = userRole === 'crypto' ? (isUserActive ? 0.045 : (hasAccess ? 0.055 : 0.0225)) : (isUserActive ? 0.80 : (hasAccess ? 1.0 : 0.50));
-   
       // Example 2: Incrementing referredUsers field
       if(doesDataExist){
   
@@ -901,12 +901,10 @@ router.post("/updateOnClick", async (request, response) => {
       }
       
     } catch (error) {
-      response.send(error);
+      response.status(500).send(error);
     }
     
-  } catch (error) {
-    response.status(500).send(error);
-  }
+  
 });
 
 // CREDIT REFERRER AFTER PAY
