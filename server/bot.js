@@ -5,7 +5,7 @@ const fs = require("fs");
 const readlineSync = require("readline-sync"); // Import readlineSync
 
 // User Bot Configurations
-const apiId = process.env.API_ID; // Replace with your API ID
+const apiId = parseInt(process.env.API_ID, 10); // Convert to number; // Replace with your API ID
 const apiHash = process.env.API_HASH; // Replace with your API Hash
 
 // Replace with your API Hash
@@ -35,12 +35,6 @@ const stringSession = new StringSession(
 
   // Login User Bot
   await client.start({
-    phoneNumber: async () => await readlineSync.question("Enter your phone number: "),
-    password: async () => await readlineSync.question("Enter your password (if enabled): "),
-    phoneCode: async () => await readlineSync.question("Enter the code you received: "),
-    onError: (err) => console.error("Error during login:", err),
-  });
-
   console.log("User bot logged in!");
   
   // Save session after successful login
