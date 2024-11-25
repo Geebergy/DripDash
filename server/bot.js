@@ -102,7 +102,7 @@ async function initializeClient() {
   }
 
   // Initialize Bot API
-  const bot = new TelegramBot(botToken, { polling: false });
+  const bot = new TelegramBot(botToken, { polling: true });
 
   // Bot Commands
   bot.onText(/\/start/, async (msg) => {
