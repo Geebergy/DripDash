@@ -7,6 +7,10 @@ const fs = require("fs");
 const apiId = process.env.APP_ID; // Replace with your API ID
 const apiHash = process.env.API_HASH; // Replace with your API Hash
 
+// Replace with your API Hash
+  const sessionFile = "session.txt";
+  // File to save the session string
+ 
 const channelsFile = "channels.json"; // File to save joined channels
 
 // Bot API Configurations
