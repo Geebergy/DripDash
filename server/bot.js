@@ -121,19 +121,19 @@ async function initializeClient() {
 
     try {
 
-      await client.start({
-        phoneNumber: async () => await askQuestion('Please enter your phone number: '),
-        password: async () => await askQuestion('Please enter your password (if 2FA is enabled): '),
-        phoneCode: async () => {
-          bot.sendMessage(chatId, 'Enter the code sent to your Telegram account.');
-          return await askQuestion('Enter the code you received: ');
-        },
-        onError: (err) => console.error(err),
-      });
+     await client.start({
+  phoneNumber: async () => await askQuestion(bot, chatId, 'Please enter your phone number:'),
+  password: async () => await askQuestion(bot, chatId, 'Please enter your password (if 2FA is enabled):'),
+  phoneCode: async () => {
+    bot.sendMessage(chatId, 'Enter the code sent to your Telegram account.');
+    return await askQuestion(bot, chatId, 'Enter the code you received:');
+  },
+  onError: (err) => console.error(err),
+});
 
-      bot.sendMessage(chatId, 'You are now logged in!');
-      bot.sendMessage(chatId, 'Your session string has been saved for future logins.');
-      fs.writeFileSync("session.json", client.session.save()); // Save this securely
+bot.sendMessage(chatId, 'You are now logged in!');
+bot.sendMessage(chatId, 'Your session string has been saved for future logins.');
+fs.writeFileSync("session.json", client.session.save()); // Save this securely
     } catch (error) {
       console.error('Login error:', error);
       bot.sendMessage(chatId, `Login failed: ${error.message}`);
