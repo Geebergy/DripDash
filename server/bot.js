@@ -17,7 +17,7 @@ let joinedChannels = []; // Array to track joined channels
 
 // Load session string if it exists
 const stringSession = new StringSession(
- fs.existsSync (sessionFile) ?    fs.readFileSync( sessionFile, "utf8"):
+ fs.existsSync (sessionFile) ? fs.readFileSync( sessionFile, "utf8"):
 );
 
 (async () => {
