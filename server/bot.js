@@ -16,6 +16,26 @@ const adminId = process.env.ADMIN_ID; // Replace with your Telegram User ID for 
 let joinedChannels = []; // Array to track joined channels
 
 
+(async () => {
+  console.log("Starting Telegram User Bot...");
+  // Login User Bot
+  await client.start({
+   phoneNumber: async () => await input.text(
+   "Enter your phone number: "),
+   password: async () => await input.text(
+   "Enter your password (if enabled): "),
+   phoneCode: async () => await input.text(
+   "Enter the code you received: "),
+
+   onError: (err) => console.error(
+   "Error during login:", err),
+   });
+  console.log("User bot logged in!");
+  fs.writeFileSync (sessionFile, client.session.
+  save(), "utf8");
+ await client.sendMessage(adminId, { message:
+"User bot session saved successfully!" });
+
 
 // Load saved channels
 if (fs.existsSync(channelsFile)) {
