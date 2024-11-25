@@ -4,7 +4,7 @@ const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
 
 // User Bot Configurations
-const apiId = process.env.APP_ID; // Replace with your API ID
+const apiId = process.env.API_ID; // Replace with your API ID
 const apiHash = process.env.API_HASH; // Replace with your API Hash
 
 // Replace with your API Hash
