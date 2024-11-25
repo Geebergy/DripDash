@@ -45,15 +45,18 @@ const adminId = process.env.ADMIN_ID; // Replace with your Telegram User ID for 
 
 let joinedChannels = []; // Array to track joined channels
 
-const askQuestion = (query) => {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
+const askQuestion = async (bot, chatId, question) => {
+  return new Promise((resolve) => {
+    // Send the question to the user
+    bot.sendMessage(chatId, question);
+
+    // Wait for the user's response
+    bot.once("message", (msg) => {
+      if (msg.chat.id === chatId) {
+        resolve(msg.text);
+      }
+    });
   });
-  return new Promise((resolve) => rl.question(query, (answer) => {
-    rl.close();
-    resolve(answer);
-  }));
 };
 
 // Load saved channels
