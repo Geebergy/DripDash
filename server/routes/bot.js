@@ -5,15 +5,14 @@ const fs = require("fs");
 const input = require("input");
 
 // User Bot Configurations
-const uri = process.env.uri;
-const apiId = "YOUR_API_ID"; // Replace with your API ID
-const apiHash = "YOUR_API_HASH"; // Replace with your API Hash
+const apiId = process.env.APP_ID; // Replace with your API ID
+const apiHash = process.env.API_HASH; // Replace with your API Hash
 const sessionFile = "session.txt"; // File to save the session string
 const channelsFile = "channels.json"; // File to save joined channels
 
 // Bot API Configurations
-const botToken = "YOUR_BOT_TOKEN"; // Replace with your Bot Token
-const adminId = "YOUR_ADMIN_ID"; // Replace with your Telegram User ID for Bot Interaction
+const botToken = process.env.BOT_TOKEN; // Replace with your Bot Token
+const adminId = process.env.ADMIN_ID; // Replace with your Telegram User ID for Bot Interaction
 
 let joinedChannels = []; // Array to track joined channels
 
