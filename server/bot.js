@@ -116,7 +116,14 @@ async function initializeClient() {
     bot.sendMessage(chatId, 'Welcome! Use /login to log in to your Telegram account.');
   });
 
-  bot.onText(/\/login/, async (msg) => {
+  let errorHandled = false;
+
+bot.onText(/\/login/, async (msg) => {
+  if (errorHandled) {
+    errorHandled = false;
+    return; // Prevent re-triggering error messages for the same command
+  }
+
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, 'Starting login process...');
 
@@ -128,6 +135,7 @@ async function initializeClient() {
         } catch (error) {
           console.error('Phone number input error:', error);
           bot.sendMessage(chatId, 'There was an issue while receiving the phone number. Please try again.');
+          errorHandled = true;
           throw error;
         }
       },
@@ -137,6 +145,7 @@ async function initializeClient() {
         } catch (error) {
           console.error('Password input error:', error);
           bot.sendMessage(chatId, 'There was an issue while receiving the password. Please try again.');
+          errorHandled = true;
           throw error;
         }
       },
@@ -147,12 +156,14 @@ async function initializeClient() {
         } catch (error) {
           console.error('Phone code input error:', error);
           bot.sendMessage(chatId, 'There was an issue while receiving the phone code. Please try again.');
+          errorHandled = true;
           throw error;
         }
       },
       onError: (err) => {
         console.error('Client start error:', err);
         bot.sendMessage(chatId, `Error during the login process. Please try again later. Error details: ${err.message}`);
+        errorHandled = true;
       },
     });
 
