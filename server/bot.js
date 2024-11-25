@@ -15,6 +15,10 @@ const adminId = process.env.ADMIN_ID; // Replace with your Telegram User ID for 
 
 let joinedChannels = []; // Array to track joined channels
 
+// Load session string if it exists
+const stringSession = new StringSession(
+ fs.existsSync (sessionFile) ?    fs.readFileSync( sessionFile, "utf8"):
+);
 
 (async () => {
   console.log("Starting Telegram User Bot...");
