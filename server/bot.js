@@ -2,7 +2,6 @@ const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
-const input = require("input");
 
 // User Bot Configurations
 const apiId = process.env.APP_ID; // Replace with your API ID
