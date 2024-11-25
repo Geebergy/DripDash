@@ -80,7 +80,8 @@ async function initializeClient() {
   async function joinChannel(inviteLink) {
     try {
       if (!client || !client.session) {
-      throw new Error("User bot is not logged in. Please log in first.");
+        throw new Error("User bot is not logged in. Please log in first.");
+      }
       const channelEntity = await client.getEntity(inviteLink); // Resolve the invite link
       const result = await client.invoke({
         _: "channels.joinChannel",
@@ -120,20 +121,19 @@ async function initializeClient() {
     bot.sendMessage(chatId, 'Starting login process...');
 
     try {
+      await client.start({
+        phoneNumber: async () => await askQuestion(bot, chatId, 'Please enter your phone number:'),
+        password: async () => await askQuestion(bot, chatId, 'Please enter your password (if 2FA is enabled):'),
+        phoneCode: async () => {
+          bot.sendMessage(chatId, 'Enter the code sent to your Telegram account.');
+          return await askQuestion(bot, chatId, 'Enter the code you received:');
+        },
+        onError: (err) => console.error(err),
+      });
 
-     await client.start({
-  phoneNumber: async () => await askQuestion(bot, chatId, 'Please enter your phone number:'),
-  password: async () => await askQuestion(bot, chatId, 'Please enter your password (if 2FA is enabled):'),
-  phoneCode: async () => {
-    bot.sendMessage(chatId, 'Enter the code sent to your Telegram account.');
-    return await askQuestion(bot, chatId, 'Enter the code you received:');
-  },
-  onError: (err) => console.error(err),
-});
-
-bot.sendMessage(chatId, 'You are now logged in!');
-bot.sendMessage(chatId, 'Your session string has been saved for future logins.');
-fs.writeFileSync("session.json", client.session.save()); // Save this securely
+      bot.sendMessage(chatId, 'You are now logged in!');
+      bot.sendMessage(chatId, 'Your session string has been saved for future logins.');
+      fs.writeFileSync("session.json", client.session.save()); // Save this securely
     } catch (error) {
       console.error('Login error:', error);
       bot.sendMessage(chatId, `Login failed: ${error.message}`);
