@@ -1,4 +1,5 @@
 const { TelegramClient } = require("telegram");
+const { StringSession } = require("telegram/sessions");
 const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
 
@@ -22,14 +23,14 @@ if (fs.existsSync(channelsFile)) {
 (async () => {
   console.log("Starting Telegram User Bot...");
 
-  // Initialize User Bot
-  const client = new TelegramClient(null, apiId, apiHash, {
+  // Initialize User Bot with an empty session
+  const client = new TelegramClient(new StringSession(""), apiId, apiHash, {
     connectionRetries: 5,
   });
 
   try {
     // Login User Bot
-    await client.connect(); // Automatically connects without sessions
+    await client.start(); // Uses default CLI for interactive login if required
     console.log("User bot connected!");
 
     // Initialize Bot API
