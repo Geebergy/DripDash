@@ -32,7 +32,7 @@ if (fs.existsSync(channelsFile)) {
   try {
     // Login User Bot
     await client.start({
-      phoneNumber: async () => phoneNumber, // Provide phone number
+      phoneNumber: async () => phoneNumber,
       password: async () => "", // Provide password if needed (2FA)
       phoneCode: async () => {
         console.log("Enter the code you received on Telegram:");
@@ -42,6 +42,9 @@ if (fs.existsSync(channelsFile)) {
           stdin.once("data", (data) => resolve(data.toString().trim()));
         });
         return code;
+      },
+      onError: (err) => {
+        console.error("Authentication error:", err.message);
       },
     });
     console.log("User bot connected!");
@@ -76,21 +79,7 @@ if (fs.existsSync(channelsFile)) {
       }
     }
 
-    async function fetchMessagesFromAllChannels() {
-      let allMessages = "Fetched Messages:\n";
-      for (const channel of joinedChannels) {
-        try {
-          const messages = await client.iterMessages(channel.id, { limit: 10 });
-          allMessages += `\n[${channel.title}]\n`;
-          for await (const message of messages) {
-            allMessages += `${message.message}\n`;
-          }
-        } catch (err) {
-          allMessages += `Error fetching messages from ${channel.title}: ${err.message}\n`;
-        }
-      }
-      return allMessages;
-    }
+  
 
     // Bot API Commands
     bot.onText(/\/start/, (msg) => {
@@ -110,11 +99,62 @@ if (fs.existsSync(channelsFile)) {
     });
 
     bot.onText(/\/fetch/, async (msg) => {
-      if (msg.chat.id.toString() === adminId) {
-        const response = await fetchMessagesFromAllChannels();
-        bot.sendMessage(adminId, response);
+  if (msg.chat.id.toString() === adminId) {
+    try {
+      const wordCounts = {}; // To store words and their occurrences per channel
+
+      // Iterate through each joined channel
+      for (const channel of joinedChannels) {
+        try {
+          const messages = await client.iterMessages(channel.id, { limit: 100 }); // Fetch last 100 messages
+
+          for await (const message of messages) {
+            if (!message.message) continue; // Skip if message is empty
+            const matches = message.message.match(/\$[A-Za-z0-9_]+/g); // Match words starting with $
+
+            if (matches) {
+              matches.forEach((word) => {
+                if (!wordCounts[word]) {
+                  wordCounts[word] = {}; // Initialize word in global storage
+                }
+                if (!wordCounts[word][channel.title]) {
+                  wordCounts[word][channel.title] = 0; // Initialize count for this channel
+                }
+                wordCounts[word][channel.title] += 1; // Increment count for this channel
+              });
+            }
+          }
+        } catch (err) {
+          console.log(`Error fetching messages from ${channel.title}: ${err.message}`);
+        }
       }
-    });
+
+      // Filter words that appear in multiple channels
+      const filteredWords = Object.entries(wordCounts).filter(([word, channels]) => {
+        return Object.keys(channels).length > 1; // Appear in more than one channel
+      });
+
+      // Build the response message
+      let response = "Keyword Report:\n";
+      if (filteredWords.length > 0) {
+        filteredWords.forEach(([word, channels]) => {
+          const totalOccurrences = Object.values(channels).reduce((sum, count) => sum + count, 0);
+          response += `\n${word} (${totalOccurrences} total occurrences):\n`;
+          for (const [channel, count] of Object.entries(channels)) {
+            response += `  - ${channel}: ${count} occurrences\n`;
+          }
+        });
+      } else {
+        response += "No keywords found appearing in multiple channels.";
+      }
+
+      // Send the response
+      bot.sendMessage(adminId, response);
+    } catch (error) {
+      bot.sendMessage(adminId, `Failed to fetch messages: ${error.message}`);
+    }
+  }
+});
 
     bot.onText(/\/channels/, (msg) => {
       if (msg.chat.id.toString() === adminId) {
