@@ -22,7 +22,10 @@ if (fs.existsSync(channelsFile)) {
 }
 
 // Define the session
-const session = new StringSession(""); // Initialize with an empty session or load from storage
+const savedSession = fs.existsSync("session.json")
+  ? fs.readFileSync("session.json", "utf8")
+  : "";
+const session = new StringSession(savedSession); // Initialize with an empty session or load from storage
 
 const client = new TelegramClient(session, apiId, apiHash, {
   deviceModel: "Custom Bot", // Adjust to match your app name
@@ -38,13 +41,18 @@ const client = new TelegramClient(session, apiId, apiHash, {
     await client.start({
       phoneNumber: async () => phoneNumber, // Replace with actual phone number
       phoneCode: async () => {
-        throw new Error("Manual input not supported in this setup.");
-      },
+  console.log("Enter the code sent to your phone:");
+  return new Promise((resolve) => {
+    process.stdin.once("data", (data) => resolve(data.toString().trim()));
+  });
+},
       onError: (error) => {
         console.error("Error occurred during authentication:", error);
       },
     });
 
+
+    fs.writeFileSync("session.json",  client.session.save());
     console.log("Bot is connected successfully!");
 
     // Initialize Bot API
