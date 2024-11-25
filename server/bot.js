@@ -2,6 +2,8 @@ const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
+const readline = require("readline");
+let client;
 
 // User Bot Configurations
 const apiId = parseInt(process.env.API_ID, 10); // Convert to number
@@ -26,34 +28,7 @@ const savedSession = fs.existsSync("session.json")
   ? fs.readFileSync("session.json", "utf8")
   : "";
 const session = new StringSession(savedSession); // Initialize with an empty session or load from storage
-
-const client = new TelegramClient(session, apiId, apiHash, {
-  deviceModel: "Custom Bot", // Adjust to match your app name
-  systemVersion: "10", // Mimic system version
-  appVersion: "1.0.0", // Ensure the app version matches Telegram requirements
-  langCode: "en", // Language
-});
-
-(async function startBot() {
-  console.log("Starting Telegram Bot...");
-
-  try {
-    await client.start({
-      phoneNumber: async () => phoneNumber, // Replace with actual phone number
-      phoneCode: async () => {
-  console.log("Enter the code sent to your phone:");
-  return new Promise((resolve) => {
-    process.stdin.once("data", (data) => resolve(data.toString().trim()));
-  });
-},
-      onError: (error) => {
-        console.error("Error occurred during authentication:", error);
-      },
-    });
-
-
-    fs.writeFileSync("session.json",  client.session.save());
-    console.log("Bot is connected successfully!");
+    
 
     // Initialize Bot API
     const bot = new TelegramBot(botToken, { polling: true });
@@ -87,13 +62,60 @@ const client = new TelegramClient(session, apiId, apiHash, {
     }
 
     // Bot API Commands
-    bot.onText(/\/start/, (msg) => {
-      if (msg.chat.id.toString() === adminId) {
-        bot.sendMessage(adminId, "Hello Admin! Send /join <invite_link>, /fetch, or /channels.");
-      } else {
-        bot.sendMessage(msg.chat.id, "Unauthorized access.");
-      }
+    
+
+// Function to get user input via terminal
+const askQuestion = (query) => {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
     });
+    return new Promise((resolve) => rl.question(query, (ans) => {
+        rl.close();
+        resolve(ans);
+    }));
+};
+
+// Start bot
+bot.onText(/\/start/, async (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Welcome! Use /login to log in to your Telegram account.');
+});
+
+// Login interaction
+bot.onText(/\/login/, async (msg) => {
+    const chatId = msg.chat.id;
+
+    bot.sendMessage(chatId, 'Starting login process...');
+    client = new TelegramClient(stringSession, apiId, apiHash, {
+        connectionRetries: 5,
+    });
+
+    try {
+        await client.start({
+            phoneNumber: async () => await askQuestion('Please enter your phone number: '),
+            password: async () => await askQuestion('Please enter your password (if 2FA is enabled): '),
+            phoneCode: async () => {
+                bot.sendMessage(chatId, 'Enter the code sent to your Telegram account.');
+                return await askQuestion('Enter the code you received: ');
+            },
+            onError: (err) => console.error(err),
+        });
+
+        bot.sendMessage(chatId, 'You are now logged in!');
+        bot.sendMessage(chatId, 'Your session string has been saved for future logins.');
+        console.log('Session string:', fs.writeFileSync("session.json",  client.session.save());; // Save this securely
+    } catch (error) {
+        console.error('Login error:', error);
+        bot.sendMessage(chatId, `Login failed: ${error.message}`);
+    }
+});
+
+// Other commands
+bot.onText(/\/help/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message');
+});
 
     bot.onText(/\/join (.+)/, async (msg, match) => {
       if (msg.chat.id.toString() === adminId) {
