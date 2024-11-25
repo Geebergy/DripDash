@@ -6,6 +6,7 @@ const fs = require("fs");
 // User Bot Configurations
 const apiId = parseInt(process.env.API_ID, 10); // Convert to number
 const apiHash = process.env.API_HASH; // Replace with your API Hash
+const phoneNumber = process.env.PHONE_NUMBER; // Replace with your phone number (e.g., "+1234567890")
 
 const channelsFile = "channels.json"; // File to save joined channels
 
@@ -30,7 +31,19 @@ if (fs.existsSync(channelsFile)) {
 
   try {
     // Login User Bot
-    await client.start(); // Uses default CLI for interactive login if required
+    await client.start({
+      phoneNumber: async () => phoneNumber, // Provide phone number
+      password: async () => "", // Provide password if needed (2FA)
+      phoneCode: async () => {
+        console.log("Enter the code you received on Telegram:");
+        const code = await new Promise((resolve) => {
+          const stdin = process.stdin;
+          stdin.resume();
+          stdin.once("data", (data) => resolve(data.toString().trim()));
+        });
+        return code;
+      },
+    });
     console.log("User bot connected!");
 
     // Initialize Bot API
