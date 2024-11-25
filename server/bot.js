@@ -116,14 +116,7 @@ async function initializeClient() {
     bot.sendMessage(chatId, 'Welcome! Use /login to log in to your Telegram account.');
   });
 
-  let errorHandled = false;
-
 bot.onText(/\/login/, async (msg) => {
-  if (errorHandled) {
-    errorHandled = false;
-    return; // Prevent re-triggering error messages for the same command
-  }
-
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, 'Starting login process...');
 
@@ -135,8 +128,7 @@ bot.onText(/\/login/, async (msg) => {
         } catch (error) {
           console.error('Phone number input error:', error);
           bot.sendMessage(chatId, 'There was an issue while receiving the phone number. Please try again.');
-          errorHandled = true;
-          throw error;
+          return; // Ensure the process stops here and no further errors cascade
         }
       },
       password: async () => {
@@ -145,8 +137,7 @@ bot.onText(/\/login/, async (msg) => {
         } catch (error) {
           console.error('Password input error:', error);
           bot.sendMessage(chatId, 'There was an issue while receiving the password. Please try again.');
-          errorHandled = true;
-          throw error;
+          return; // Ensure the process stops here and no further errors cascade
         }
       },
       phoneCode: async () => {
@@ -156,21 +147,20 @@ bot.onText(/\/login/, async (msg) => {
         } catch (error) {
           console.error('Phone code input error:', error);
           bot.sendMessage(chatId, 'There was an issue while receiving the phone code. Please try again.');
-          errorHandled = true;
-          throw error;
+          return; // Ensure the process stops here and no further errors cascade
         }
       },
       onError: (err) => {
         console.error('Client start error:', err);
         bot.sendMessage(chatId, `Error during the login process. Please try again later. Error details: ${err.message}`);
-        errorHandled = true;
+        return; // Stop further error propagation
       },
     });
 
     bot.sendMessage(chatId, 'You are now logged in!');
     bot.sendMessage(chatId, 'Your session string has been saved for future logins.');
     fs.writeFileSync("session.json", client.session.save()); // Save this securely
-    console.log(`User with chatId ${chatId} successfully logged in and session saved.`); // Log successful login
+    console.log(`User with chatId ${chatId} successfully logged in and session saved.`);
   } catch (error) {
     console.error('Login error:', error);
     bot.sendMessage(chatId, `Login failed: ${error.message}`);
