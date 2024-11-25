@@ -2,6 +2,7 @@ const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
+const readlineSync = require("readline-sync"); // Import readlineSync
 
 // User Bot Configurations
 const apiId = process.env.API_ID; // Replace with your API ID
@@ -10,7 +11,7 @@ const apiHash = process.env.API_HASH; // Replace with your API Hash
 // Replace with your API Hash
 const sessionFile = "session.txt";
 // File to save the session string
- 
+
 const channelsFile = "channels.json"; // File to save joined channels
 
 // Bot API Configurations
@@ -21,44 +22,38 @@ let joinedChannels = []; // Array to track joined channels
 
 // Load session string if it exists
 const stringSession = new StringSession(
- fs.existsSync (sessionFile) ? fs.readFileSync( sessionFile, "utf8"):
+  fs.existsSync(sessionFile) ? fs.readFileSync(sessionFile, "utf8") : ""
 );
 
 (async () => {
   console.log("Starting Telegram User Bot...");
+
+  // Initialize User Bot
+  const client = new TelegramClient(stringSession, apiId, apiHash, {
+    connectionRetries: 5,
+  });
+
   // Login User Bot
   await client.start({
-   phoneNumber: async () => await readlineSync.question(
-   "Enter your phone number: "),
-   password: async () => await readlineSync.question(
-   "Enter your password (if enabled): "),
-   phoneCode: async () => await readlineSync.question(
-   "Enter the code you received: "),
+    phoneNumber: async () => await readlineSync.question("Enter your phone number: "),
+    password: async () => await readlineSync.question("Enter your password (if enabled): "),
+    phoneCode: async () => await readlineSync.question("Enter the code you received: "),
+    onError: (err) => console.error("Error during login:", err),
+  });
 
-   onError: (err) => console.error(
-   "Error during login:", err),
-   });
   console.log("User bot logged in!");
-  console.log(`Phone: ${phoneNumber}, Password: $    {password}, Code: ${phoneCode}`);
-  fs.writeFileSync (sessionFile, client.session.
-  save(), "utf8");
- await client.sendMessage(adminId, { message:
-"User bot session saved successfully!" });
+  
+  // Save session after successful login
+  fs.writeFileSync(sessionFile, client.session.save(), "utf8");
+  await client.sendMessage(adminId, { message: "User bot session saved successfully!" });
 
+  // Load saved channels
+  if (fs.existsSync(channelsFile)) {
+    joinedChannels = JSON.parse(fs.readFileSync(channelsFile, "utf8"));
+  }
 
-// Load saved channels
-if (fs.existsSync(channelsFile)) {
-  joinedChannels = JSON.parse(fs.readFileSync(channelsFile, "utf8"));
-}
-
-// Initialize User Bot
-const client = new TelegramClient(stringSession, apiId, apiHash, {
-  connectionRetries: 5,
-});
-
-// Initialize Bot API
-const bot = new TelegramBot(botToken, { polling: true });
-
+  // Initialize Bot API
+  const bot = new TelegramBot(botToken, { polling: true });
 
   // User Bot Functions
   async function joinChannel(inviteLink) {
