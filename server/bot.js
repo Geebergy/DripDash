@@ -76,6 +76,8 @@ async function initializeClient() {
   // User Bot Functions
   async function joinChannel(inviteLink) {
     try {
+      if (!client || !client.session) {
+      throw new Error("User bot is not logged in. Please log in first.");
       const channelEntity = await client.getEntity(inviteLink); // Resolve the invite link
       const result = await client.invoke({
         _: "channels.joinChannel",
@@ -115,6 +117,7 @@ async function initializeClient() {
     bot.sendMessage(chatId, 'Starting login process...');
 
     try {
+
       await client.start({
         phoneNumber: async () => await askQuestion('Please enter your phone number: '),
         password: async () => await askQuestion('Please enter your password (if 2FA is enabled): '),
