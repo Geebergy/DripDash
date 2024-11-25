@@ -5,6 +5,7 @@ const fs = require("fs");
 const input = require("input");
 
 // User Bot Configurations
+const uri = process.env.uri;
 const apiId = "YOUR_API_ID"; // Replace with your API ID
 const apiHash = "YOUR_API_HASH"; // Replace with your API Hash
 const sessionFile = "session.txt"; // File to save the session string
