@@ -21,33 +21,32 @@ if (fs.existsSync(channelsFile)) {
   joinedChannels = JSON.parse(fs.readFileSync(channelsFile, "utf8"));
 }
 
-(async () => {
-  console.log("Starting Telegram User Bot...");
+const client = new TelegramClient(session, apiId, apiHash, {
+    deviceModel: "Custom Bot", // Adjust to match your app name
+    systemVersion: "10", // Mimic system version
+    appVersion: "1.0.0", // Ensure the app version matches Telegram requirements
+    langCode: "en", // Language
+});
 
-  // Initialize User Bot with an empty session
-  const client = new TelegramClient(new StringSession(""), apiId, apiHash, {
-    connectionRetries: 5,
-  });
+(async function startBot() {
+    console.log("Starting Telegram Bot...");
 
-  try {
-    // Login User Bot
-    await client.start({
-      phoneNumber: async () => phoneNumber,
-      password: async () => "", // Provide password if needed (2FA)
-      phoneCode: async () => {
-        console.log("Enter the code you received on Telegram:");
-        const code = await new Promise((resolve) => {
-          const stdin = process.stdin;
-          stdin.resume();
-          stdin.once("data", (data) => resolve(data.toString().trim()));
+    try {
+        await client.start({
+            phoneNumber: async () => phoneNumber, // Replace with actual phone number
+            phoneCode: async () => {
+                throw new Error("Manual input not supported in this setup.");
+            },
+            onError: (error) => {
+                console.error("Error occurred during authentication:", error);
+            },
         });
-        return code;
-      },
-      onError: (err) => {
-        console.error("Authentication error:", err.message);
-      },
-    });
-    console.log("User bot connected!");
+
+        console.log("Bot is connected successfully!");
+    } catch (error) {
+        console.error("Failed to initialize bot:", error);
+    }
+})();
 
     // Initialize Bot API
     const bot = new TelegramBot(botToken, { polling: true });
