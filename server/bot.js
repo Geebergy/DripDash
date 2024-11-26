@@ -28,6 +28,7 @@ console.log('Bot is running...');
 const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 const TelegramBot = require("node-telegram-bot-api");
+const { exec } = require("child_process");
 const fs = require("fs");
 const readline = require("readline");
 let client;
