@@ -116,6 +116,30 @@ async function initializeClient() {
     bot.sendMessage(chatId, 'Welcome! Use /login to log in to your Telegram account.');
   });
 
+bot.onText(/\/generate_session/, (msg) => {
+  const chatId = msg.chat.id;
+
+  bot.sendMessage(chatId, "Generating session. Please wait...");
+
+  exec("python3 generate_session.py", (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error: ${error.message}`);
+      bot.sendMessage(chatId, "Failed to generate session.");
+      return;
+    }
+
+    if (stderr) {
+      console.error(`Stderr: ${stderr}`);
+      bot.sendMessage(chatId, "Error during session generation.");
+      return;
+    }
+
+    const sessionString = stdout.trim();
+    fs.writeFileSync("session.json", sessionString);
+    bot.sendMessage(chatId, "Session generated successfully.");
+  });
+});
+
 bot.onText(/\/login/, async (msg) => {
   const chatId = msg.chat.id;
 
