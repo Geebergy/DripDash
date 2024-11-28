@@ -28,7 +28,7 @@ console.log('Bot is running...');
 const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 const TelegramBot = require("node-telegram-bot-api");
-const { exec } = require("child_process");
+const { spawn } = require("child_process");
 const fs = require("fs");
 const readline = require("readline");
 let client;
@@ -122,23 +122,26 @@ bot.onText(/\/generate_session/, (msg) => {
 
   bot.sendMessage(chatId, "Generating session. Please wait...");
 
-  exec("python3 generate_session.py", (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error: ${error.message}`);
-      bot.sendMessage(chatId, "Failed to generate session.");
-      return;
-    }
+const childPython spawn('python', ['generate_session.py']);
 
-    if (stderr) {
-      console.error(`Stderr: ${stderr}`);
-      bot.sendMessage(chatId, "Error during session generation.");
-      return;
-    }
-
-    const sessionString = stdout.trim();
+childPython.stdout.on('data', (data) => {
+ console.log('stdout: ${data});
+ const sessionString = data.trim();
     fs.writeFileSync("session.json", sessionString);
     bot.sendMessage(chatId, "Session generated successfully.");
-  });
+});
+
+childPython.stderr.on('data', (data) => {
+  console.error('stderr: ${data}`);
+  bot.sendMessage(chatId, "Failed to generate session.");
+  return;
+});
+
+childPython.on('close', (code) => {
+  console.log(child process exited with code {code});
+});
+
+
 });
 
 bot.onText(/\/login/, async (msg) => {
