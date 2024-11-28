@@ -138,7 +138,10 @@ async function initializeClient() {
 
   // Bot Commands
   bot.onText(/\/start/, async (msg) => {
-    bot.sendMessage(chatId, 'Welcome! Use /login.  to log in to your Telegram account.');
+bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message\n/join <invite link> - To join a channel\n/channels - To see a list of joined channels');
+  });
+
+    
 
 const chatId = msg.chat.id;
 
