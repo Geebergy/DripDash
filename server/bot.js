@@ -95,7 +95,6 @@ async function initializeClient() {
 }
 
 
-const session = new StringSession(savedSession); // Initialize with an empty session or load from storage
 
 // Initialize TelegramClient
 async function initializeClient() {
