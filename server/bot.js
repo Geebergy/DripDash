@@ -247,14 +247,25 @@ bot.onText(/\/fetch/, async (msg) => {
       if (filteredWords.length > 0) {
         filteredWords.forEach(([word, channels]) => {
           const totalOccurrences = Object.values(channels).reduce((sum, count) => sum + count, 0);
-          response += `\n${word} (${totalOccurrences} total occurrences):\n`;
-          for (const [channel, count] of Object.entries(channels)) {
-            response += `  - ${channel}: ${count} occurrences\n`;
-          }
+          response += `\n${word} - ${totalOccurrences} occurrences across:`;
+          Object.entries(channels).forEach(([channelTitle, count]) => {
+            response += `\n  - ${channelTitle}: ${count}`;
+          });
         });
       } else {
-        response += "No keywords found appearing in multiple channels.";
+        response += "No keywords found across multiple channels.";
       }
 
-      // Send the response
       bot.sendMessage(adminId, response);
+    } catch (error) {
+      console.error('Error during fetch operation:', error);
+      bot.sendMessage(adminId, 'Error while fetching messages: ' + error.message);
+    }
+  }
+});
+
+// Fetch the bot's status
+bot.onText(/\/status/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, 'Bot is up and running!');
+});
