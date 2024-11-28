@@ -13,6 +13,12 @@ except Exception as e:
     print("Error fetching API credentials:", e)
     raise
 
+# Ensure to provide the phone number as an environment variable or input
+PHONE_NUMBER = os.getenv("PHONE_NUMBER")
+
+if not PHONE_NUMBER:
+    raise Exception("Phone number not provided in the environment variables.")
+
 try:
     print("Creating the Client instance...")
     app = Client("my_account", api_id=API_ID, api_hash=API_HASH)
@@ -26,6 +32,14 @@ async def main():
     try:
         await app.start()
         print("Application started.")
+        
+        # Check if we need to provide a code
+        if not await app.is_user_authorized():
+            await app.send_code_request(PHONE_NUMBER)  # Send the code request to the phone number
+            print("Sent the code request to the phone number.")
+            # In an interactive session, you'd provide the code manually
+            # You can automate this if you are handling the code input directly
+
         session_string = await app.export_session_string()
         print("Session string:", session_string)
     except Exception as e:
