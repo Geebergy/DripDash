@@ -100,8 +100,9 @@ const session = new StringSession(savedSession); // Initialize with an empty ses
 // Initialize TelegramClient
 async function initializeClient() {
   client = new TelegramClient(session, apiId, apiHash, {
-    connectionRetries: 5,
-  });
+  connectionRetries: 5,
+  logger: { log: console.log }, // Enable detailed logs
+});
 
   try {
     console.log("Connecting to Telegram...");
