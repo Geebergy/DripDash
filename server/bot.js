@@ -71,16 +71,12 @@ const savedSession = fs.existsSync("session.json")
   : "";
 const session = new StringSession(savedSession);
 
-
-
-
-
 // Initialize TelegramClient
 async function initializeClient() {
   client = new TelegramClient(session, apiId, apiHash, {
-  connectionRetries: 5,
-  logger: { log: console.log }, // Enable detailed logs
-});
+    connectionRetries: 5,
+    logger: { log: console.log }, // Enable detailed logs
+  });
 
   try {
     console.log("Connecting to Telegram...");
@@ -100,8 +96,8 @@ async function initializeClient() {
   }
 }
 
-  // User Bot Functions
-  async function joinChannel(inviteLink) {
+// User Bot Functions
+async function joinChannel(inviteLink) {
   try {
     if (!client || !client.isConnected()) {
       console.log("Client is disconnected. Reconnecting...");
@@ -133,10 +129,10 @@ async function initializeClient() {
   }
 }
 
-  // Initialize Bot API
-  const bot = new TelegramBot(botToken, { polling: true });
+// Initialize Bot API
+const bot = new TelegramBot(botToken, { polling: true });
 
-  // Bot Commands
+// Bot Commands
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
 
@@ -166,14 +162,7 @@ bot.onText(/\/start/, async (msg) => {
   childPython.on('close', (code) => {
     console.log(`Process exited with code: ${code}`);
   });
-  });
-    
-
-
-
- 
- 
-
+});
 
 bot.onText(/\/login/, async (msg) => {
   const chatId = msg.chat.id;
@@ -203,93 +192,69 @@ bot.onText(/\/login/, async (msg) => {
   }
 });
 
-  // Other commands
-  bot.onText(/\/help/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message');
-  });
-
-  bot.onText(/\/join (.+)/, async (msg, match) => {
-    if (msg.chat.id.toString() === adminId) {
-      const inviteLink = match[1];
-      const response = await joinChannel(inviteLink);
-      bot.sendMessage(adminId, response);
-    }
-  });
-
-  bot.onText(/\/fetch/, async (msg) => {
-    if (msg.chat.id.toString() === adminId) {
-      try {
-        const wordCounts = {}; // To store words and their occurrences per channel
-
-        // Iterate through each joined channel
-        for (const channel of joinedChannels) {
-          try {
-            const messages = client.iterMessages(channel.id, { limit: 100 }); // Fetch last 100 messages
-
-            for await (const message of messages) {
-              if (!message.message) continue; // Skip if message is empty
-              const matches = message.message.match(/\$[A-Za-z0-9_]+/g); // Match words starting with $
-
-              if (matches) {
-                matches.forEach((word) => {
-                  if (!wordCounts[word]) {
-                    wordCounts[word] = {}; // Initialize word in global storage
-                  }
-                  if (!wordCounts[word][channel.title]) {
-                    wordCounts[word][channel.title] = 0; // Initialize count for this channel
-                  }
-                  wordCounts[word][channel.title] += 1; // Increment count for this channel
-                });
-              }
-            }
-          } catch (err) {
-            console.log(`Error fetching messages from ${channel.title}: ${err.message}`);
-          }
-        }
-
-        // Filter words that appear in multiple channels
-        const filteredWords = Object.entries(wordCounts).filter(([word, channels]) => {
-          return Object.keys(channels).length > 1; // Appear in more than one channel
-        });
-
-        // Build the response message
-        let response = "Keyword Report:\n";
-        if (filteredWords.length > 0) {
-          filteredWords.forEach(([word, channels]) => {
-            const totalOccurrences = Object.values(channels).reduce((sum, count) => sum + count, 0);
-            response += `\n${word} (${totalOccurrences} total occurrences):\n`;
-            for (const [channel, count] of Object.entries(channels)) {
-              response += `  - ${channel}: ${count} occurrences\n`;
-            }
-          });
-        } else {
-          response += "No keywords found appearing in multiple channels.";
-        }
-
-        // Send the response
-        bot.sendMessage(adminId, response);
-      } catch (error) {
-        bot.sendMessage(adminId, `Failed to fetch messages: ${error.message}`);
-      }
-    }
-  });
-
-  bot.onText(/\/channels/, (msg) => {
-    if (msg.chat.id.toString() === adminId) {
-      if (joinedChannels.length === 0) {
-        bot.sendMessage(adminId, "No channels in the list.");
-      } else {
-        let response = "Joined Channels:\n";
-        joinedChannels.forEach((channel, index) => {
-          response += `${index + 1}. ${channel.title} (ID: ${channel.id})\n`;
-        });
-        bot.sendMessage(adminId, response);
-      }
-    }
-  });
-}
-
-initializeClient().catch(error => {
-  console.error("Failed to initialize user bot:", error.message);
+// Other commands
+bot.onText(/\/help/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message');
 });
+
+bot.onText(/\/join (.+)/, async (msg, match) => {
+  if (msg.chat.id.toString() === adminId) {
+    const inviteLink = match[1];
+    const response = await joinChannel(inviteLink);
+    bot.sendMessage(adminId, response);
+  }
+});
+
+bot.onText(/\/fetch/, async (msg) => {
+  if (msg.chat.id.toString() === adminId) {
+    try {
+      const wordCounts = {}; // To store words and their occurrences per channel
+
+      // Iterate through each joined channel
+      for (const channel of joinedChannels) {
+        try {
+          const messages = client.iterMessages(channel.id, { limit: 100 }); // Fetch last 100 messages
+
+          for await (const message of messages) {
+            if (!message.message) continue; // Skip if message is empty
+            const matches = message.message.match(/\$[A-Za-z0-9_]+/g); // Match words starting with $
+
+            if (matches) {
+              matches.forEach((word) => {
+                if (!wordCounts[word]) {
+                  wordCounts[word] = {}; // Initialize word in global storage
+                }
+                if (!wordCounts[word][channel.title]) {
+                  wordCounts[word][channel.title] = 0; // Initialize count for this channel
+                }
+                wordCounts[word][channel.title] += 1; // Increment count for this channel
+              });
+            }
+          }
+        } catch (err) {
+          console.log(`Error fetching messages from ${channel.title}: ${err.message}`);
+        }
+      }
+
+      // Filter words that appear in multiple channels
+      const filteredWords = Object.entries(wordCounts).filter(([word, channels]) => {
+        return Object.keys(channels).length > 1; // Appear in more than one channel
+      });
+
+      // Build the response message
+      let response = "Keyword Report:\n";
+      if (filteredWords.length > 0) {
+        filteredWords.forEach(([word, channels]) => {
+          const totalOccurrences = Object.values(channels).reduce((sum, count) => sum + count, 0);
+          response += `\n${word} (${totalOccurrences} total occurrences):\n`;
+          for (const [channel, count] of Object.entries(channels)) {
+            response += `  - ${channel}: ${count} occurrences\n`;
+          }
+        });
+      } else {
+        response += "No keywords found appearing in multiple channels.";
+      }
+
+      // Send the response
+      bot.sendMessage(adminId, response);
