@@ -122,23 +122,24 @@ bot.onText(/\/generate_session/, (msg) => {
 
   bot.sendMessage(chatId, "Generating session. Please wait...");
 
+
 const childPython = spawn('python', ['generate_session.py']);
 
 childPython.stdout.on('data', (data) => {
- console.log('stdout: ${data});
- const sessionString = data.trim();
+  console.log(`Output: ${data}`);
+  const sessionString = data.trim();
     fs.writeFileSync("session.json", sessionString);
     bot.sendMessage(chatId, "Session generated successfully.");
 });
 
 childPython.stderr.on('data', (data) => {
-  console.error('stderr: ${data}`);
+  console.error(`Error: ${data}`);
   bot.sendMessage(chatId, "Failed to generate session.");
   return;
 });
 
 childPython.on('close', (code) => {
-  console.log(child process exited with code {code});
+  console.log(`Process exited with code: ${code}`);
 });
 
 
