@@ -97,34 +97,36 @@ async function initializeClient() {
 
   // User Bot Functions
   async function joinChannel(inviteLink) {
-    try {
-      if (!client || !client.session) {
-        throw new Error("User bot is not logged in. Please log in first.");
-      }
-      const channelEntity = await client.getEntity(inviteLink); // Resolve the invite link
-      const result = await client.invoke({
-        _: "channels.joinChannel",
-        channel: channelEntity,
-      });
-
-      const channelInfo = {
-        id: channelEntity.id,
-        title: channelEntity.title,
-      };
-
-      if (!joinedChannels.some((ch) => ch.id === channelInfo.id)) {
-        joinedChannels.push(channelInfo);
-        fs.writeFileSync(channelsFile, JSON.stringify(joinedChannels, null, 2), "utf8");
-        const message = `Successfully joined and saved: ${channelInfo.title}`;
-        console.log(message);
-        return message;
-      } else {
-        return "Already joined this channel.";
-      }
-    } catch (error) {
-      return `Failed to join channel: ${error.message}`;
+  try {
+    if (!client || !client.isConnected()) {
+      console.log("Client is disconnected. Reconnecting...");
+      await client.connect(); // Reconnect if disconnected
     }
+
+    const channelEntity = await client.getEntity(inviteLink); // Resolve the invite link
+    const result = await client.invoke({
+      _: "channels.joinChannel",
+      channel: channelEntity,
+    });
+
+    const channelInfo = {
+      id: channelEntity.id,
+      title: channelEntity.title,
+    };
+
+    if (!joinedChannels.some((ch) => ch.id === channelInfo.id)) {
+      joinedChannels.push(channelInfo);
+      fs.writeFileSync(channelsFile, JSON.stringify(joinedChannels, null, 2), "utf8");
+      const message = `Successfully joined and saved: ${channelInfo.title}`;
+      console.log(message);
+      return message;
+    } else {
+      return "Already joined this channel.";
+    }
+  } catch (error) {
+    return `Failed to join channel: ${error.message}`;
   }
+}
 
   // Initialize Bot API
   const bot = new TelegramBot(botToken, { polling: true });
