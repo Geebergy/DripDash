@@ -149,13 +149,6 @@ bot.onText(/\/start/, async (msg) => {
   childPython.stdout.on('data', (data) => {
     console.log(`Output: ${data}`);
     const sessionString = data.toString().trim();
-
-    if (!sessionString) {
-      bot.sendMessage(chatId, "Failed to generate session string.");
-      return;
-    }
-
-    // Save the session string to a file
     fs.writeFileSync("session.json", sessionString);
     bot.sendMessage(chatId, "Session generated successfully.");
   });
