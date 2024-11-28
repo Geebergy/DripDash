@@ -138,12 +138,13 @@ async function initializeClient() {
 
   // Bot Commands
   bot.onText(/\/start/, async (msg) => {
+const chatId = msg.chat.id;
 bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message\n/join <invite link> - To join a channel\n/channels - To see a list of joined channels');
   });
 
     
 
-const chatId = msg.chat.id;
+
 
   bot.sendMessage(chatId, "Generating session. Please wait...");
 
