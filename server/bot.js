@@ -77,6 +77,24 @@ async function initializeClient() {
     connectionRetries: 5,
   });
 
+  try {
+    console.log("Connecting to Telegram...");
+    await client.connect(); // Explicitly connect
+    if (!(await client.isUserAuthorized())) {
+      console.log("Logging in...");
+      await client.start({
+        phoneNumber: () => phoneNumber,
+        password: () => password,
+        phoneCode: () => phoneCode,
+        onError: (err) => console.error("Login error:", err),
+      });
+    }
+    console.log("Client connected and authorized.");
+  } catch (error) {
+    console.error("Failed to initialize client:", error.message);
+  }
+}
+
   // User Bot Functions
   async function joinChannel(inviteLink) {
     try {
