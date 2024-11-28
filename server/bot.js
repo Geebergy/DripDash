@@ -166,7 +166,6 @@ bot.onText(/\/start/, async (msg) => {
   childPython.on('close', (code) => {
     console.log(`Process exited with code: ${code}`);
   });
-});
     
 
 
