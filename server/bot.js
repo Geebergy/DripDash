@@ -69,6 +69,32 @@ if (fs.existsSync(channelsFile)) {
 const savedSession = fs.existsSync("session.json")
   ? fs.readFileSync("session.json", "utf8")
   : "";
+const session = new StringSession(savedSession);
+
+async function initializeClient() {
+  client = new TelegramClient(session, apiId, apiHash, {
+    connectionRetries: 5,
+  });
+
+  try {
+    console.log("Connecting to Telegram...");
+    await client.connect();
+    if (!(await client.isUserAuthorized())) {
+      console.log("Session expired. Logging in...");
+      await client.start({
+        phoneNumber: () => phoneNumber,
+        password: () => password,
+        phoneCode: () => phoneCode,
+      });
+      fs.writeFileSync("session.json", client.session.save()); // Save the session
+    }
+    console.log("Client connected and authorized.");
+  } catch (error) {
+    console.error("Failed to initialize client:", error.message);
+  }
+}
+
+
 const session = new StringSession(savedSession); // Initialize with an empty session or load from storage
 
 // Initialize TelegramClient
