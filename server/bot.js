@@ -137,14 +137,10 @@ async function initializeClient() {
   const bot = new TelegramBot(botToken, { polling: true });
 
   // Bot Commands
-  bot.onText(/\/start/, async (msg) => {
-const chatId = msg.chat.id;
-bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message\n/join <invite link> - To join a channel\n/channels - To see a list of joined channels');
-  });
+bot.onText(/\/start/, async (msg) => {
+  const chatId = msg.chat.id;
 
-    
-
-
+  bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message\n/join <invite link> - To join a channel\n/channels - To see a list of joined channels');
 
   bot.sendMessage(chatId, "Generating session. Please wait...");
 
@@ -160,7 +156,6 @@ bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/h
   childPython.stderr.on('data', (data) => {
     console.error(`Error: ${data}`);
     bot.sendMessage(chatId, "Failed to generate session.");
-    return;
   });
 
   childPython.on('error', (error) => {
@@ -171,7 +166,13 @@ bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/h
   childPython.on('close', (code) => {
     console.log(`Process exited with code: ${code}`);
   });
-  });
+});
+    
+
+
+
+ 
+ 
 
 
 bot.onText(/\/login/, async (msg) => {
