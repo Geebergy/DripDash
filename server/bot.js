@@ -86,11 +86,7 @@ async function initializeClient() {
 
     if (!(await client.isUserAuthorized())) {
       console.log("Logging in...");
-      await client.start({
-        phoneNumber: () => phoneNumber,
-        password: () => password,
-        phoneCode: () => phoneCode,
-        onError: (err) => console.error("Login error:", err),
+      
       });
     }
     console.log("Client connected and authorized.");
