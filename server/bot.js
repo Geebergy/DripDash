@@ -161,13 +161,9 @@ async function initializeClient() {
   // Bot Commands
   bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 'Welcome! Use /login to log in to your Telegram account.');
-  });
+    bot.sendMessage(chatId, 'Welcome! Use /login.  to log in to your Telegram account.');
 
-
-
-bot.onText(/\/generate_session/, (msg) => {
-  const chatId = msg.chat.id;
+const chatId = msg.chat.id;
 
   bot.sendMessage(chatId, "Generating session. Please wait...");
 
@@ -194,7 +190,8 @@ bot.onText(/\/generate_session/, (msg) => {
   childPython.on('close', (code) => {
     console.log(`Process exited with code: ${code}`);
   });
-});
+  });
+
 
 bot.onText(/\/login/, async (msg) => {
   const chatId = msg.chat.id;
