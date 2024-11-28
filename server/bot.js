@@ -71,6 +71,8 @@ const savedSession = fs.existsSync("session.json")
   : "";
 const session = new StringSession(savedSession);
 
+// Initialize Telegram Client 
+
 // Initialize TelegramClient
 async function initializeClient() {
   client = new TelegramClient(session, apiId, apiHash, {
@@ -81,6 +83,7 @@ async function initializeClient() {
   try {
     console.log("Connecting to Telegram...");
     await client.connect(); // Explicitly connect
+
     if (!(await client.isUserAuthorized())) {
       console.log("Logging in...");
       await client.start({
@@ -96,13 +99,19 @@ async function initializeClient() {
   }
 }
 
-// User Bot Functions
+// Function to check if the client is initialized
+function ensureClient() {
+  if (!client || !client.isConnected()) {
+    console.log("Client is not initialized or disconnected. Reconnecting...");
+    return initializeClient();
+  }
+  return Promise.resolve();
+}
+
+// JoinChannel function with improved error handling
 async function joinChannel(inviteLink) {
   try {
-    if (!client || !client.isConnected()) {
-      console.log("Client is disconnected. Reconnecting...");
-      await client.connect(); // Reconnect if disconnected
-    }
+    await ensureClient();  // Ensure client is connected before proceeding
 
     const channelEntity = await client.getEntity(inviteLink); // Resolve the invite link
     const result = await client.invoke({
@@ -125,6 +134,7 @@ async function joinChannel(inviteLink) {
       return "Already joined this channel.";
     }
   } catch (error) {
+    console.error("Failed to join channel:", error.message);
     return `Failed to join channel: ${error.message}`;
   }
 }
