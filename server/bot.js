@@ -117,32 +117,36 @@ async function initializeClient() {
     bot.sendMessage(chatId, 'Welcome! Use /login to log in to your Telegram account.');
   });
 
+
+
 bot.onText(/\/generate_session/, (msg) => {
   const chatId = msg.chat.id;
 
   bot.sendMessage(chatId, "Generating session. Please wait...");
 
+  const childPython = spawn('python', ['generate_session.py']);
 
-const childPython = spawn('python', ['generate_session.py']);
-
-childPython.stdout.on('data', (data) => {
-  console.log(`Output: ${data}`);
-  const sessionString = data.trim();
+  childPython.stdout.on('data', (data) => {
+    console.log(`Output: ${data}`);
+    const sessionString = data.toString().trim();
     fs.writeFileSync("session.json", sessionString);
     bot.sendMessage(chatId, "Session generated successfully.");
-});
+  });
 
-childPython.stderr.on('data', (data) => {
-  console.error(`Error: ${data}`);
-  bot.sendMessage(chatId, "Failed to generate session.");
-  return;
-});
+  childPython.stderr.on('data', (data) => {
+    console.error(`Error: ${data}`);
+    bot.sendMessage(chatId, "Failed to generate session.");
+    return;
+  });
 
-childPython.on('close', (code) => {
-  console.log(`Process exited with code: ${code}`);
-});
+  childPython.on('error', (error) => {
+    console.error(`Failed to start child process: ${error}`);
+    bot.sendMessage(chatId, "Internal error while generating session.");
+  });
 
-
+  childPython.on('close', (code) => {
+    console.log(`Process exited with code: ${code}`);
+  });
 });
 
 bot.onText(/\/login/, async (msg) => {
