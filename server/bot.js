@@ -1,15 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const { TelegramClient } = require("telegram");
-const { StringSession } = require("telegram/sessions");
-const TelegramBot = require("node-telegram-bot-api");
-const { spawn } = require("child_process");
-const fs = require("fs");
 
 app.use(cors());
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow access from any origin
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -24,33 +19,57 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// Bot logic
+// Bot logic should go below, and it will continue running after server starts
 console.log('Bot is running...');
+// Your bot's logic here, like connecting to a service or handling periodic tasks
+
+// Example of a basic bot operation
+
+const { TelegramClient } = require("telegram");
+const { StringSession } = require("telegram/sessions");
+const TelegramBot = require("node-telegram-bot-api");
+const { spawn } = require("child_process");
+const fs = require("fs");
+const readline = require("readline");
+let client;
 
 // User Bot Configurations
 const apiId = parseInt(process.env.API_ID, 10); // Convert to number
-const apiHash = process.env.API_HASH;
-const phoneNumber = process.env.PHONE_NUMBER;
-const botToken = process.env.BOT_TOKEN;
-const adminId = process.env.ADMIN_ID;
+const apiHash = process.env.API_HASH; // Replace with your API Hash
+const phoneNumber = process.env.PHONE_NUMBER; // Replace with your phone number (e.g., "+1234567890")
 
-// File configurations
-const channelsFile = "channels.json";
-const sessionFile = "session.json";
+const channelsFile = "channels.json"; // File to save joined channels
 
-// Initialize joined channels
-let joinedChannels = fs.existsSync(channelsFile)
-  ? JSON.parse(fs.readFileSync(channelsFile, "utf8"))
-  : [];
+// Bot API Configurations
+const botToken = process.env.BOT_TOKEN; // Replace with your Bot Token
+const adminId = process.env.ADMIN_ID; // Replace with your Telegram User ID for Bot Interaction
 
-// Initialize session
-const savedSession = fs.existsSync(sessionFile)
-  ? fs.readFileSync(sessionFile, "utf8")
+let joinedChannels = []; // Array to track joined channels
+
+const askQuestion = async (bot, chatId, question) => {
+  return new Promise((resolve) => {
+    // Send the question to the user
+    bot.sendMessage(chatId, question);
+
+    // Wait for the user's response
+    bot.once("message", (msg) => {
+      if (msg.chat.id === chatId) {
+        resolve(msg.text);
+      }
+    });
+  });
+};
+
+// Load saved channels
+if (fs.existsSync(channelsFile)) {
+  joinedChannels = JSON.parse(fs.readFileSync(channelsFile, "utf8"));
+}
+
+// Define the session
+const savedSession = fs.existsSync("session.json")
+  ? fs.readFileSync("session.json", "utf8")
   : "";
 const session = new StringSession(savedSession);
-
-// Telegram Client
-let client;
 
 async function initializeClient() {
   client = new TelegramClient(session, apiId, apiHash, {
@@ -60,28 +79,57 @@ async function initializeClient() {
   try {
     console.log("Connecting to Telegram...");
     await client.connect();
-
     if (!(await client.isUserAuthorized())) {
       console.log("Session expired. Logging in...");
       await client.start({
-        phoneNumber: () => Promise.resolve(phoneNumber),
-        password: () => Promise.resolve(""), // Adjust if 2FA is enabled
-        phoneCode: () => Promise.resolve(""),
+        phoneNumber: () => phoneNumber,
+        password: () => password,
+        phoneCode: () => phoneCode,
       });
-
-      fs.writeFileSync(sessionFile, client.session.save());
+      fs.writeFileSync("session.json", client.session.save()); // Save the session
     }
-
     console.log("Client connected and authorized.");
   } catch (error) {
     console.error("Failed to initialize client:", error.message);
   }
 }
 
-// User Bot Functions
-async function joinChannel(inviteLink) {
+
+
+// Initialize TelegramClient
+async function initializeClient() {
+  client = new TelegramClient(session, apiId, apiHash, {
+  connectionRetries: 5,
+  logger: { log: console.log }, // Enable detailed logs
+});
+
   try {
-    const channelEntity = await client.getEntity(inviteLink);
+    console.log("Connecting to Telegram...");
+    await client.connect(); // Explicitly connect
+    if (!(await client.isUserAuthorized())) {
+      console.log("Logging in...");
+      await client.start({
+        phoneNumber: () => phoneNumber,
+        password: () => password,
+        phoneCode: () => phoneCode,
+        onError: (err) => console.error("Login error:", err),
+      });
+    }
+    console.log("Client connected and authorized.");
+  } catch (error) {
+    console.error("Failed to initialize client:", error.message);
+  }
+}
+
+  // User Bot Functions
+  async function joinChannel(inviteLink) {
+  try {
+    if (!client || !client.isConnected()) {
+      console.log("Client is disconnected. Reconnecting...");
+      await client.connect(); // Reconnect if disconnected
+    }
+
+    const channelEntity = await client.getEntity(inviteLink); // Resolve the invite link
     const result = await client.invoke({
       _: "channels.joinChannel",
       channel: channelEntity,
@@ -94,8 +142,10 @@ async function joinChannel(inviteLink) {
 
     if (!joinedChannels.some((ch) => ch.id === channelInfo.id)) {
       joinedChannels.push(channelInfo);
-      fs.writeFileSync(channelsFile, JSON.stringify(joinedChannels, null, 2));
-      return `Successfully joined and saved: ${channelInfo.title}`;
+      fs.writeFileSync(channelsFile, JSON.stringify(joinedChannels, null, 2), "utf8");
+      const message = `Successfully joined and saved: ${channelInfo.title}`;
+      console.log(message);
+      return message;
     } else {
       return "Already joined this channel.";
     }
@@ -104,67 +154,159 @@ async function joinChannel(inviteLink) {
   }
 }
 
-// Initialize Bot API
-const bot = new TelegramBot(botToken, { polling: true });
+  // Initialize Bot API
+  const bot = new TelegramBot(botToken, { polling: true });
 
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, 'Welcome! Use /login to log in to your Telegram account.');
-});
+  // Bot Commands
+  bot.onText(/\/start/, async (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Welcome! Use /login.  to log in to your Telegram account.');
+
+const chatId = msg.chat.id;
+
+  bot.sendMessage(chatId, "Generating session. Please wait...");
+
+  const childPython = spawn('python', ['generate_session.py']);
+
+  childPython.stdout.on('data', (data) => {
+    console.log(`Output: ${data}`);
+    const sessionString = data.toString().trim();
+    fs.writeFileSync("session.json", sessionString);
+    bot.sendMessage(chatId, "Session generated successfully.");
+  });
+
+  childPython.stderr.on('data', (data) => {
+    console.error(`Error: ${data}`);
+    bot.sendMessage(chatId, "Failed to generate session.");
+    return;
+  });
+
+  childPython.on('error', (error) => {
+    console.error(`Failed to start child process: ${error}`);
+    bot.sendMessage(chatId, "Internal error while generating session.");
+  });
+
+  childPython.on('close', (code) => {
+    console.log(`Process exited with code: ${code}`);
+  });
+  });
+
 
 bot.onText(/\/login/, async (msg) => {
   const chatId = msg.chat.id;
 
   try {
     bot.sendMessage(chatId, 'Starting login process...');
+
+    const phoneNumber = await askQuestion(bot, chatId, 'Please enter your phone number:');
+    const password = await askQuestion(bot, chatId, 'Please enter your password (if 2FA is enabled):');
     const phoneCode = await askQuestion(bot, chatId, 'Enter the code sent to your Telegram account:');
 
     await client.start({
-      phoneNumber: () => Promise.resolve(phoneNumber),
-      phoneCode: () => Promise.resolve(phoneCode),
+      phoneNumber: () => phoneNumber,
+      password: () => password,
+      phoneCode: () => phoneCode,
+      onError: (err) => {
+        throw new Error(`Login failed: ${err.message}`);
+      },
     });
 
     bot.sendMessage(chatId, 'You are now logged in!');
-    fs.writeFileSync(sessionFile, client.session.save());
+    fs.writeFileSync("session.json", client.session.save()); // Save session securely
+    console.log(`User with chatId ${chatId} successfully logged in.`);
   } catch (error) {
+    console.error('Login error:', error);
     bot.sendMessage(chatId, `Login failed: ${error.message}`);
   }
 });
 
-bot.onText(/\/join (.+)/, async (msg, match) => {
-  if (msg.chat.id.toString() === adminId) {
-    const inviteLink = match[1];
-    const response = await joinChannel(inviteLink);
-    bot.sendMessage(adminId, response);
-  }
-});
+  // Other commands
+  bot.onText(/\/help/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Commands:\n/login - Log in to your Telegram account\n/help - Show help message');
+  });
 
-bot.onText(/\/channels/, (msg) => {
-  if (msg.chat.id.toString() === adminId) {
-    if (joinedChannels.length === 0) {
-      bot.sendMessage(adminId, "No channels in the list.");
-    } else {
-      let response = "Joined Channels:\n";
-      joinedChannels.forEach((channel, index) => {
-        response += `${index + 1}. ${channel.title} (ID: ${channel.id})\n`;
-      });
+  bot.onText(/\/join (.+)/, async (msg, match) => {
+    if (msg.chat.id.toString() === adminId) {
+      const inviteLink = match[1];
+      const response = await joinChannel(inviteLink);
       bot.sendMessage(adminId, response);
     }
-  }
-});
+  });
 
-initializeClient().catch((error) => {
-  console.error("Failed to initialize user bot:", error.message);
-});
+  bot.onText(/\/fetch/, async (msg) => {
+    if (msg.chat.id.toString() === adminId) {
+      try {
+        const wordCounts = {}; // To store words and their occurrences per channel
 
-// Helper Function
-function askQuestion(bot, chatId, question) {
-  return new Promise((resolve) => {
-    bot.sendMessage(chatId, question);
-    bot.once("message", (msg) => {
-      if (msg.chat.id === chatId) {
-        resolve(msg.text);
+        // Iterate through each joined channel
+        for (const channel of joinedChannels) {
+          try {
+            const messages = client.iterMessages(channel.id, { limit: 100 }); // Fetch last 100 messages
+
+            for await (const message of messages) {
+              if (!message.message) continue; // Skip if message is empty
+              const matches = message.message.match(/\$[A-Za-z0-9_]+/g); // Match words starting with $
+
+              if (matches) {
+                matches.forEach((word) => {
+                  if (!wordCounts[word]) {
+                    wordCounts[word] = {}; // Initialize word in global storage
+                  }
+                  if (!wordCounts[word][channel.title]) {
+                    wordCounts[word][channel.title] = 0; // Initialize count for this channel
+                  }
+                  wordCounts[word][channel.title] += 1; // Increment count for this channel
+                });
+              }
+            }
+          } catch (err) {
+            console.log(`Error fetching messages from ${channel.title}: ${err.message}`);
+          }
+        }
+
+        // Filter words that appear in multiple channels
+        const filteredWords = Object.entries(wordCounts).filter(([word, channels]) => {
+          return Object.keys(channels).length > 1; // Appear in more than one channel
+        });
+
+        // Build the response message
+        let response = "Keyword Report:\n";
+        if (filteredWords.length > 0) {
+          filteredWords.forEach(([word, channels]) => {
+            const totalOccurrences = Object.values(channels).reduce((sum, count) => sum + count, 0);
+            response += `\n${word} (${totalOccurrences} total occurrences):\n`;
+            for (const [channel, count] of Object.entries(channels)) {
+              response += `  - ${channel}: ${count} occurrences\n`;
+            }
+          });
+        } else {
+          response += "No keywords found appearing in multiple channels.";
+        }
+
+        // Send the response
+        bot.sendMessage(adminId, response);
+      } catch (error) {
+        bot.sendMessage(adminId, `Failed to fetch messages: ${error.message}`);
       }
-    });
+    }
+  });
+
+  bot.onText(/\/channels/, (msg) => {
+    if (msg.chat.id.toString() === adminId) {
+      if (joinedChannels.length === 0) {
+        bot.sendMessage(adminId, "No channels in the list.");
+      } else {
+        let response = "Joined Channels:\n";
+        joinedChannels.forEach((channel, index) => {
+          response += `${index + 1}. ${channel.title} (ID: ${channel.id})\n`;
+        });
+        bot.sendMessage(adminId, response);
+      }
+    }
   });
 }
+
+initializeClient().catch(error => {
+  console.error("Failed to initialize user bot:", error.message);
+});
