@@ -1,6 +1,7 @@
 import os
 from pyrogram import Client
 import asyncio
+import sys
 
 # Fetch details from environment variables
 try:
@@ -13,11 +14,11 @@ except Exception as e:
     print("Error fetching API credentials:", e)
     raise
 
-# Ensure to provide the phone number as an environment variable or input
-PHONE_NUMBER = os.getenv("PHONE_NUMBER")
+# Ensure to provide the phone number via command-line arguments or environment variable
+PHONE_NUMBER = sys.argv[1] if len(sys.argv) > 1 else None
 
 if not PHONE_NUMBER:
-    raise Exception("Phone number not provided in the environment variables.")
+    raise Exception("Phone number not provided.")
 
 try:
     print("Creating the Client instance...")
@@ -33,13 +34,13 @@ async def main():
         await app.start()
         print("Application started.")
         
-        # Check if we need to provide a code
+        # Check if the user is authorized
         if not await app.is_user_authorized():
-            await app.send_code_request(PHONE_NUMBER)  # Send the code request to the phone number
+            # If the phone number is not authorized, it sends a code to the phone number
+            await app.send_code_request(PHONE_NUMBER)
             print("Sent the code request to the phone number.")
-            # In an interactive session, you'd provide the code manually
-            # You can automate this if you are handling the code input directly
-
+        
+        # Export session string
         session_string = await app.export_session_string()
         print("Session string:", session_string)
     except Exception as e:
