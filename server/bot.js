@@ -86,8 +86,6 @@ async function initializeClient() {
 
     if (!(await client.isUserAuthorized())) {
       console.log("Logging in...");
-      
-      });
     }
     console.log("Client connected and authorized.");
   } catch (error) {
