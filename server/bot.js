@@ -122,7 +122,7 @@ bot.onText(/\/generate_session/, (msg) => {
 
   bot.sendMessage(chatId, "Generating session. Please wait...");
 
-const childPython spawn('python', ['generate_session.py']);
+const childPython = spawn('python', ['generate_session.py']);
 
 childPython.stdout.on('data', (data) => {
  console.log('stdout: ${data});
